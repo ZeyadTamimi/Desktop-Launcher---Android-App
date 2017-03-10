@@ -73,7 +73,8 @@
             app:backgroundTint="@android:color/holo_blue_dark"
             app:elevation="10dp"
             app:fabSize="normal"
-            app:srcCompat="@mipmap/ic_chevron_left_black_48dp" />
+            app:srcCompat="@mipmap/ic_chevron_left_black_48dp"
+            android:onClick="buttonPress"/>
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/button_up"
@@ -88,7 +89,8 @@
             app:backgroundTint="@android:color/holo_blue_dark"
             app:elevation="10dp"
             app:fabSize="normal"
-            app:srcCompat="@mipmap/ic_expand_less_black_48dp" />
+            app:srcCompat="@mipmap/ic_expand_less_black_48dp"
+            android:onClick="buttonPress"/>
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/button_right"
@@ -104,7 +106,8 @@
             app:backgroundTint="@android:color/holo_blue_dark"
             app:elevation="10dp"
             app:fabSize="normal"
-            app:srcCompat="@mipmap/ic_chevron_right_black_48dp" />
+            app:srcCompat="@mipmap/ic_chevron_right_black_48dp"
+            android:onClick="buttonPress"/>
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/button_down"
@@ -117,7 +120,8 @@
             app:backgroundTint="@android:color/holo_blue_dark"
             app:elevation="10dp"
             app:fabSize="normal"
-            app:srcCompat="@mipmap/ic_expand_more_black_48dp" />
+            app:srcCompat="@mipmap/ic_expand_more_black_48dp"
+            android:onClick="buttonPress"/>
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/button_fire"
@@ -129,7 +133,8 @@
             app:backgroundTint="@android:color/holo_red_light"
             app:fabSize="normal"
             app:rippleColor="@android:color/holo_red_dark"
-            app:srcCompat="@mipmap/ic_my_location_black_48dp" />
+            app:srcCompat="@mipmap/ic_my_location_black_48dp"
+            android:onClick="buttonPress"/>
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/button_camera"
@@ -143,7 +148,8 @@
             android:layout_marginStart="16dp"
             android:layout_alignTop="@+id/button_up"
             android:layout_alignLeft="@+id/button_left"
-            android:layout_alignStart="@+id/button_left" />
+            android:layout_alignStart="@+id/button_left"
+            android:onClick="buttonPress"/>
     </RelativeLayout>
 
 

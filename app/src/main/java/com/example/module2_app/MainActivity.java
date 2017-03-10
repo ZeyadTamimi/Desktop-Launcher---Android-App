@@ -7,11 +7,12 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 
 public class MainActivity extends AppCompatActivity {
 
 
-    public final static String EXTRA_MESSAGE = "com.example.myfirstapp.MESSAGE";
+    public static String EXTRA_MESSAGE = "MESSAGE";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +51,59 @@ public class MainActivity extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
+
+    public void buttonPress (View view) {
+
+
+        switch(view.getId()) {
+            case R.id.button_up:
+                rotateUp();
+                break;
+            case R.id.button_down:
+                rotateDown();
+                break;
+            case R.id.button_right:
+                rotateRight();
+                break;
+            case R.id.button_left:
+                rotateLeft();
+                break;
+            case R.id.button_fire:
+                fire();
+                break;
+            case R.id.button_camera:
+                takePicture();
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void rotateUp() {
+        EXTRA_MESSAGE = "Rotating Up";
+        recreate();
+    }
+    private void rotateDown() {
+        EXTRA_MESSAGE = "Rotating Down";
+        recreate();
+    }
+    private void rotateRight() {
+        EXTRA_MESSAGE = "Rotating Right";
+        recreate();
+    }
+    private void rotateLeft() {
+        EXTRA_MESSAGE = "Rotating Left";
+        recreate();
+    }
+    private void fire() {
+        EXTRA_MESSAGE = "Firing";
+        recreate();
+    }
+    private void takePicture() {
+        EXTRA_MESSAGE = "Taking Picture";
+        recreate();
+    }
+
 
 }
 

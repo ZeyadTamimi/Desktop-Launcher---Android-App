@@ -39,7 +39,7 @@ public class GraphicsView extends View{
         paint.setColor(Color.WHITE);
         paint.setTextSize(100.0f);
         paint.setAlpha(255); // Draw some text at X,Y co-ord [50,50]
-        canvas.drawText ("CPEN 391 is the best", max_x/6, max_y/2, paint );
+        canvas.drawText (MainActivity.EXTRA_MESSAGE, 20,130, paint );
     }
 
 
