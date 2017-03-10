@@ -79,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //TESTING FUNCTIONS
     private void rotateUp() {
         EXTRA_MESSAGE = "Rotating Up";
         recreate();

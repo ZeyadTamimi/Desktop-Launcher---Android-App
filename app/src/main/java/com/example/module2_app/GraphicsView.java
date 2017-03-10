@@ -31,12 +31,12 @@ public class GraphicsView extends View{
 
     @Override
     public void onDraw (Canvas canvas) {
-        canvas.drawColor( Color.BLACK );
+        canvas.drawColor( Color.LTGRAY );
         Paint paint = new Paint(); // create a new “paint brush” to draw on canvas
         int max_x = getWidth() - 1; // get width and height of the view in pixel
         int max_y = getHeight() - 1;
 
-        paint.setColor(Color.WHITE);
+        paint.setColor(Color.DKGRAY);
         paint.setTextSize(100.0f);
         paint.setAlpha(255); // Draw some text at X,Y co-ord [50,50]
         canvas.drawText (MainActivity.EXTRA_MESSAGE, 20,130, paint );
