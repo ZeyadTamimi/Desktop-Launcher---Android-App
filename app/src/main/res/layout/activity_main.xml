@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:orientation="vertical"
+    android:weightSum="1">
+
+    <android.support.v7.widget.Toolbar
+            android:id="@+id/activity_main_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            android:elevation="4dp"
+            android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+
+    <android.support.design.widget.TabLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:tabIndicatorColor="@color/colorPrimary">
+
+        <android.support.design.widget.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="MANUAL" />
+
+        <android.support.design.widget.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="AUTO" />
+
+        <android.support.design.widget.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SECURITY" />
+
+        <android.support.design.widget.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TRACKING" />
+
+        <android.support.design.widget.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TILT" />
+
+    </android.support.design.widget.TabLayout>
+
+    <com.example.module2_app.GraphicsView
+        android:id="@+id/graphics_window"
+        android:layout_width="match_parent"
+        android:layout_height="279dp"
+        app:srcCompat="@android:drawable/alert_light_frame" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/button_left"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignTop="@+id/button_right"
+            android:layout_marginLeft="40dp"
+            android:layout_marginStart="40dp"
+            android:clickable="true"
+            app:backgroundTint="@android:color/holo_blue_dark"
+            app:elevation="10dp"
+            app:fabSize="normal"
+            app:srcCompat="@mipmap/ic_chevron_left_black_48dp" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/button_up"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/button_fire"
+            android:layout_alignLeft="@+id/button_fire"
+            android:layout_alignStart="@+id/button_fire"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="29dp"
+            android:clickable="true"
+            app:backgroundTint="@android:color/holo_blue_dark"
+            app:elevation="10dp"
+            app:fabSize="normal"
+            app:srcCompat="@mipmap/ic_expand_less_black_48dp" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/button_right"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/button_down"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginBottom="28dp"
+            android:layout_marginEnd="40dp"
+            android:layout_marginRight="40dp"
+            android:clickable="true"
+            app:backgroundTint="@android:color/holo_blue_dark"
+            app:elevation="10dp"
+            app:fabSize="normal"
+            app:srcCompat="@mipmap/ic_chevron_right_black_48dp" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/button_down"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="17dp"
+            android:clickable="true"
+            app:backgroundTint="@android:color/holo_blue_dark"
+            app:elevation="10dp"
+            app:fabSize="normal"
+            app:srcCompat="@mipmap/ic_expand_more_black_48dp" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/button_fire"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/button_left"
+            android:layout_centerHorizontal="true"
+            android:clickable="true"
+            app:backgroundTint="@android:color/holo_red_light"
+            app:fabSize="normal"
+            app:rippleColor="@android:color/holo_red_dark"
+            app:srcCompat="@mipmap/ic_my_location_black_48dp" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/button_camera"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            app:backgroundTint="?android:attr/colorPressedHighlight"
+            app:fabSize="normal"
+            app:srcCompat="@mipmap/ic_camera_alt_black_48dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_alignTop="@+id/button_up"
+            android:layout_alignLeft="@+id/button_left"
+            android:layout_alignStart="@+id/button_left" />
+    </RelativeLayout>
+
+
+</LinearLayout>
+
