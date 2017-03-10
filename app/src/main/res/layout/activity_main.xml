@@ -20,6 +20,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:elevation="10dp"
+        android:theme="@style/AppTheme"
         app:tabIndicatorColor="@color/colorPrimary"
         app:tabSelectedTextColor="@android:color/black">
 
@@ -63,7 +64,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="0.45"
-            android:elevation="10dp">
+            android:elevation="10dp"
+            android:background="@drawable/boarder">
 
             <android.support.design.widget.FloatingActionButton
                 android:id="@+id/button_left"
