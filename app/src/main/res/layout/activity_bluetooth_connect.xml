@@ -38,7 +38,8 @@
             android:inputType="numberPassword"
             android:password="true"
             android:singleLine="true"
-            android:textAlignment="center" />
+            android:textAlignment="center"
+            android:backgroundTint="@color/colorPrimary" />
 
         <Space
             android:layout_width="wrap_content"
