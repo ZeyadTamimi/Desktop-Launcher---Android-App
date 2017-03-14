@@ -3,12 +3,15 @@
     <item
         android:state_selected="false"
         android:state_pressed="false"
-        android:drawable="@drawable/gradient_bg" />
+        android:background="#FFFFFF" />
     <item
         android:state_pressed="true"
-        android:drawable="@drawable/gradient_bg_hover" />
+        android:background="#bdbdbd"/>
     <item
         android:state_selected="true"
         android:state_pressed="false"
-        android:drawable="@drawable/gradient_bg_hover" />
+        android:background="#bdbdbd" />
 </selector>
+    <!--android:drawable="@drawable/gradient_bg"-->
+    <!--android:drawable="@drawable/gradient_bg_hover" -->
+    <!--android:drawable="@drawable/gradient_bg_hover"-->
