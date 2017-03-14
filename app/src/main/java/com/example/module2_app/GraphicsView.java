@@ -1,16 +1,9 @@
 package com.example.module2_app;
 
-/**
- * Created by deh on 3/9/2017.
- */
-
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.LinearGradient;
 import android.graphics.Paint;
-
-import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -28,7 +21,6 @@ public class GraphicsView extends View{
         super(context, attrs, defStyle);
     }
 
-
     @Override
     public void onDraw (Canvas canvas) {
         canvas.drawColor( Color.LTGRAY );
@@ -38,8 +30,8 @@ public class GraphicsView extends View{
 
         paint.setColor(Color.DKGRAY);
         paint.setTextSize(100.0f);
-        paint.setAlpha(255); // Draw some text at X,Y co-ord [50,50]
-        canvas.drawText (MainActivity.EXTRA_MESSAGE, 20,130, paint );
+        paint.setAlpha(255);
+        canvas.drawCircle(max_x / 2, max_y / 2, 10, paint);
     }
 
 

@@ -63,6 +63,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="0.5"
+            android:onClick="buttonPress"
             android:text="Connect" />
 
         <Space
@@ -87,8 +88,9 @@
             android:id="@+id/button_cancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Cancel"
-            android:layout_weight="0.1" />
+            android:layout_weight="0.1"
+            android:onClick="buttonPress"
+            android:text="Cancel" />
 
         <Space
             android:layout_width="wrap_content"

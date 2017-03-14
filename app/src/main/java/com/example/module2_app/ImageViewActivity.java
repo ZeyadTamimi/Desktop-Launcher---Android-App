@@ -1,9 +1,5 @@
 package com.example.module2_app;
 
-/**
- * Created by deh on 3/9/2017.
- */
-
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
