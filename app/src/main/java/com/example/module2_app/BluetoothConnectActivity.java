@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
+import android.os.Handler;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -31,6 +32,8 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
 
     private final static int REQUEST_ENABLE_BT = 1;
     private BluetoothAdapter mBluetoothAdapter;
+    public static BluetoothSocket myBluetoothSocket;
+    private static final String TAG = "MY_APP_DEBUG_TAG";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,6 +113,7 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
 
             for (BluetoothDevice d : mBluetoothAdapter.getBondedDevices()) {
                 if (d.getAddress().equals(macAddress)) {
+                    new ConnectThread(d).run();
                 }
             }
         }
@@ -128,7 +132,7 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
             try {
                 // Get a BluetoothSocket to connect with the given BluetoothDevice.
                 // MY_UUID is the app's UUID string, also used in the server code.
-                tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
+                tmp = device.createRfcommSocketToServiceRecord(device.getUuids()[0].getUuid());
             } catch (IOException e) {
                 Log.e(TAG, "Socket's create() method failed", e);
             }
@@ -155,7 +159,8 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
 
             // The connection attempt succeeded. Perform work associated with
             // the connection in a separate thread.
-            manageMyConnectedSocket(mmSocket);
+            myBluetoothSocket = mmSocket;
+            MainActivity.toast.out("Should be connected :)");
         }
 
         // Closes the client socket and causes the thread to finish.
