@@ -1,15 +1,18 @@
 package com.example.module2_app;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Handler;
+import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -18,16 +21,31 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class MainActivity extends AppCompatActivity {
     private static final long WAIT_TIME = 2000;
     private long timeLastMovement;
-
+    private static final String TAG = "MY_APP_DEBUG_TAG";
     public static String toastMessage = "MESSAGE";
     public static AppToast toast;
+    private CommunicationThread mmCommunicationThread;
 
     private RelativeLayout buttonsArea;
     private ImageView picture;
+
+    public Handler mHandler = new Handler() {
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MessageConstants.MESSAGE_READ: {
+                    byte[] data = (byte[]) msg.obj;
+                    toast.out("Got " + msg.arg1 + " bytes");
+                }
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -150,10 +168,16 @@ public class MainActivity extends AppCompatActivity {
     }
     private void fire() {
         toastMessage = "Firing";
+        mmCommunicationThread = new CommunicationThread(BluetoothConnectActivity.myBluetoothSocket, mHandler);
+        mmCommunicationThread.start();
     }
     public void takePicture() {
         toastMessage = "Taking Picture";
         // TODO: display the actual image here
+        byte[] testByte = new byte[35000];
+        for (int i = 0; i < 35000; i++)
+            testByte[i] = (byte) i;
+        mmCommunicationThread.write(testByte);
         displayImage(new byte[1]);
     }
 
