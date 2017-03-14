@@ -18,10 +18,9 @@ public class BluetoothArrayAdaptor extends ArrayAdapter<String> {
     public final int numRows = 500 ;
     private boolean [] RowConnection = new boolean [numRows];
     // constructor
-    public BluetoothArrayAdaptor ( Context _context,
-                                  int textViewResourceId,
-                                  ArrayList<String> _theStringArray
-    )
+    public BluetoothArrayAdaptor(Context _context,
+                                 int textViewResourceId,
+                                 ArrayList<String> _theStringArray)
     {
         // call base class constructor
         super(_context, textViewResourceId, _theStringArray);

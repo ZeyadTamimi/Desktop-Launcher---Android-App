@@ -43,6 +43,17 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.module2_app.MainActivity" />
         </activity>
+        <!-- A child of the main activity -->
+        <activity
+            android:name="com.example.module2_app.SettingsActivity"
+            android:label="@string/settings_activity_label"
+            android:parentActivityName="com.example.module2_app.MainActivity" >
+
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.module2_app.MainActivity" />
+        </activity>
     </application>
 
 </manifest>

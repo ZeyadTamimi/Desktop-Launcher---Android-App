@@ -5,6 +5,6 @@
     <string name="action_settings">Settings </string>
     <string name="bluetooth_connect_activity_label">Connection Setup </string>
     <string name="image_view_activity_label">Image Viewer </string>
-
+    <string name="settings_activity_label"> Settings </string>
 
 </resources>

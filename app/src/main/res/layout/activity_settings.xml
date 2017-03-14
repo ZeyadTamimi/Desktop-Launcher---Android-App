@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="1">
+
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/activity_settings_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:elevation="10dp"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.10" />
+
+    <Switch
+        android:id="@+id/backup_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.03"
+        android:text="      Automatically back up photos" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.07" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/rotation_speed_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.05"
+            android:text="      Turret rotaion speed"
+            android:textAppearance="@style/TextAppearance.AppCompat" />
+
+        <SeekBar
+            android:id="@+id/turret_speed_bar"
+            style="@style/Widget.AppCompat.SeekBar.Discrete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:max="4"
+            android:progress="2"
+            android:layout_weight="1"/>
+    </LinearLayout>
+
+</LinearLayout>

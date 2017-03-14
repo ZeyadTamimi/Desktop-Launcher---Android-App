@@ -78,7 +78,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="0.45"
-            android:background="@drawable/boarder"
             android:elevation="10dp">
 
             <android.support.design.widget.FloatingActionButton
