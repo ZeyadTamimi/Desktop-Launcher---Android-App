@@ -4,7 +4,6 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
-import android.os.Handler;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -15,26 +14,21 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Set;
 
 public class BluetoothConnectActivity extends  AppCompatActivity {
-
-    // two instances of our new custom array adaptor
-    private BluetoothArrayAdaptor myPairedArrayAdapter;
-    // two dynamic arrays of strings (populate at run time)
-    private ArrayList<String> myPairedDevicesStringArray = new ArrayList<String>();
-    private ArrayList<BluetoothDevice> myPairedDevicesArray = new ArrayList<BluetoothDevice>();
-
-
-    private final static int REQUEST_ENABLE_BT = 1;
-    private BluetoothAdapter mBluetoothAdapter;
     private static final String TAG = "MY_APP_DEBUG_TAG";
-    public static BluetoothSocket myBluetoothSocket;
+    private static final int REQUEST_ENABLE_BT = 1;
+
+    private BluetoothArrayAdaptor mPairedAdapter;
+    private ArrayList<String> mPairedStringArray;
+    private ArrayList<BluetoothDevice> mPairedDeviceArray;
+    private BluetoothAdapter mBluetoothAdapter;
+
     public static ConnectThread myConnectThread;
+    public static BluetoothSocket myBluetoothSocket;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,12 +39,16 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
         ActionBar ab = getSupportActionBar();
         ab.setDisplayHomeAsUpEnabled(true);
 
-        myPairedArrayAdapter = new BluetoothArrayAdaptor(this,
-                android.R.layout.simple_list_item_1, myPairedDevicesStringArray);
-        // get handles to the two list views in the Activity main layout
+        mPairedStringArray = new ArrayList<>();
+        mPairedDeviceArray = new ArrayList<>();
+
+        mPairedAdapter = new BluetoothArrayAdaptor(this,
+                android.R.layout.simple_list_item_1,
+                mPairedStringArray);
+
         ListView PairedlistView = (ListView) findViewById(R.id.paired_list);
-        // set the adaptor view for both list views above
-        PairedlistView.setAdapter (myPairedArrayAdapter);
+        PairedlistView.setAdapter(mPairedAdapter);
+
         // Bluetooth
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mBluetoothAdapter == null) {
@@ -62,7 +60,22 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         }
 
-        PairedlistView.setOnItemClickListener (mPairedClickedHandler);
+        PairedlistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View v, int pos, long id) {
+                MainActivity.toast.out("Clicked");
+                if (mPairedAdapter.getConnection(pos)) {
+                    mPairedAdapter.setDisconnected(pos);
+                    myConnectThread.cancel();
+                }
+                else {
+                    mPairedAdapter.setConnected(pos);
+                    myConnectThread = new ConnectThread(mPairedDeviceArray.get(pos));
+                    myConnectThread.setDaemon(true);
+                    myConnectThread.start();
+                }
+            }
+        });
     }
 
     @Override
@@ -77,56 +90,20 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
     public void buttonPress(View view) {
         switch(view.getId()) {
             case R.id.button_refresh:
-                connect();
-                break;
+                refresh();
         }
     }
 
-    public void connect() {
-        MainActivity.toast.out("CONNECT");
-        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
-
-        if (pairedDevices.size() > 0) {
-            // There are paired devices. Get the name and address of each paired device.
-            for (BluetoothDevice device : pairedDevices) {
-                String deviceName = device.getName();
-                String deviceHardwareAddress = device.getAddress(); // MAC address
-                myPairedDevicesStringArray.add(deviceHardwareAddress);
-            }
-
-            myPairedArrayAdapter.notifyDataSetChanged();
+    public void refresh() {
+        MainActivity.toast.out("REFRESH");
+        mPairedStringArray.clear();
+        mPairedDeviceArray.clear();
+        for (BluetoothDevice d : mBluetoothAdapter.getBondedDevices()) {
+            mPairedStringArray.add(d.getAddress());
+            mPairedDeviceArray.add(d);
         }
-
-
+        mPairedAdapter.notifyDataSetChanged();
     }
-
-    public void cancel() {
-        MainActivity.toast.out("CANCEL");
-    }
-
-    private AdapterView.OnItemClickListener mPairedClickedHandler = new AdapterView.OnItemClickListener() {
-        public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-            String macAddress = myPairedDevicesStringArray.get(position);
-            MainActivity.toast.out(macAddress);
-
-            for (BluetoothDevice d : mBluetoothAdapter.getBondedDevices()) {
-                if (d.getAddress().equals(macAddress)) {
-                    if (myPairedArrayAdapter.getConnection(position) == false) {
-                        myPairedArrayAdapter.setConnected(position);
-                        myConnectThread = new ConnectThread(d);
-                        myConnectThread.start();
-                    }
-                    else {
-                        myPairedArrayAdapter.setDisconnected(position);
-                        myConnectThread.cancel();
-                    }
-
-                    myPairedArrayAdapter.notifyDataSetChanged ();
-                }
-
-            }
-        }
-    };
 
     private class ConnectThread extends Thread {
         private final BluetoothSocket mmSocket;
@@ -169,7 +146,6 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
             // The connection attempt succeeded. Perform work associated with
             // the connection in a separate thread.
             myBluetoothSocket = mmSocket;
-            //MainActivity.toast.out("Should be connected :)");
         }
 
         // Closes the client socket and causes the thread to finish.
@@ -181,6 +157,7 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
             }
         }
     }
+
 }
 
 
