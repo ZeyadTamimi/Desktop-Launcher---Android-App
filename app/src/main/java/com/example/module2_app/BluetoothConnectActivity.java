@@ -76,11 +76,8 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
 
     public void buttonPress(View view) {
         switch(view.getId()) {
-            case R.id.button_connect:
+            case R.id.button_refresh:
                 connect();
-                break;
-            case R.id.button_cancel:
-                cancel();
                 break;
         }
     }
