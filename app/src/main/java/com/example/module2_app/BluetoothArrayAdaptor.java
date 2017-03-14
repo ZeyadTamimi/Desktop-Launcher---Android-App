@@ -15,6 +15,8 @@ public class BluetoothArrayAdaptor extends ArrayAdapter<String> {
     // my new class variables, copies of constructor params, but add more if required
     private Context context ;
     private ArrayList<String> theStringArray;
+    public final int numRows = 500 ;
+    private boolean [] RowConnection = new boolean [numRows];
     // constructor
     public BluetoothArrayAdaptor ( Context _context,
                                   int textViewResourceId,
@@ -26,6 +28,7 @@ public class BluetoothArrayAdaptor extends ArrayAdapter<String> {
         // save the context and the array of strings we were given
         context = _context;
         theStringArray = _theStringArray;
+        clearConnection ();
     }
 
     @Override
@@ -40,9 +43,24 @@ public class BluetoothArrayAdaptor extends ArrayAdapter<String> {
         TextView label = (TextView) row.findViewById( R.id.BTdeviceText);
         label.setText (theStringArray.get(position));
         icon = (ImageView) row.findViewById (R.id.Selected);
-        icon.setImageResource (R.drawable.lightbulb_on);
+        if(RowConnection[position] == false)
+            icon.setImageResource (R.drawable.checkbox_blank_outline);
+        else
+            icon.setImageResource(R.drawable.checkbox_marked);
         icon.setVisibility (View.VISIBLE);
 
         return row;
     }
+
+    public void setConnected (int position) {RowConnection [position] = true ; }
+    public void setDisconnected (int position) {RowConnection [position] = false ; }
+    public boolean getConnection(int position) {return RowConnection[position];}
+    public void clearConnection () {
+        for(int i = 0; i < numRows; i ++)
+            RowConnection[i] = false ;
+    }
+
+
+
+
 }

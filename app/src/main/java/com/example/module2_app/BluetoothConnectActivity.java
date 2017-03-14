@@ -32,8 +32,9 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
 
     private final static int REQUEST_ENABLE_BT = 1;
     private BluetoothAdapter mBluetoothAdapter;
-    public static BluetoothSocket myBluetoothSocket;
     private static final String TAG = "MY_APP_DEBUG_TAG";
+    public static BluetoothSocket myBluetoothSocket;
+    public static ConnectThread myConnectThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,8 +114,19 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
 
             for (BluetoothDevice d : mBluetoothAdapter.getBondedDevices()) {
                 if (d.getAddress().equals(macAddress)) {
-                    new ConnectThread(d).run();
+                    if (myPairedArrayAdapter.getConnection(position) == false) {
+                        myPairedArrayAdapter.setConnected(position);
+                        myConnectThread = new ConnectThread(d);
+                        myConnectThread.start();
+                    }
+                    else {
+                        myPairedArrayAdapter.setDisconnected(position);
+                        myConnectThread.cancel();
+                    }
+
+                    myPairedArrayAdapter.notifyDataSetChanged ();
                 }
+
             }
         }
     };
@@ -160,7 +172,7 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
             // The connection attempt succeeded. Perform work associated with
             // the connection in a separate thread.
             myBluetoothSocket = mmSocket;
-            MainActivity.toast.out("Should be connected :)");
+            //MainActivity.toast.out("Should be connected :)");
         }
 
         // Closes the client socket and causes the thread to finish.
