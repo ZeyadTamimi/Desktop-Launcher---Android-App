@@ -39,9 +39,19 @@ public class MainActivity extends AppCompatActivity {
 
     private CommunicationThread mmCommunicationThread;
     public Handler mHandler = new Handler() {
+        @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MessageConstants.MESSAGE_READ: {
+                    // TODO: Handle all types of messages
+                    // TODO: Size check
+                    byte[] receivevMessage = (byte[]) msg.obj;
+                    if (receivevMessage[0] == MessageConstants.RESPONSE_ID) {
+                        if (receivevMessage[3] == MessageConstants.RESPONSE_NO_ERROR)
+                            toast.out("Command Successfull!");
+                        else
+                            toast.out("Command: " + receivevMessage[2] +" failed with code: " + receivevMessage[3]);
+                    }
                     enableButtons(true);
                 }
             }
@@ -177,6 +187,7 @@ public class MainActivity extends AppCompatActivity {
         if (mmCommunicationThread != null) {
             mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_LEFT, 500000);
         }
+        enableButtons(false);
     }
 
     private void fire() {

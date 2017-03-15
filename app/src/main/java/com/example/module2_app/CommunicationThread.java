@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothSocket;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.SyncStateContract;
 import android.util.Log;
 
 import java.io.IOException;
@@ -45,16 +46,23 @@ class CommunicationThread extends Thread {
     }
 
     public void run() {
-        mmBuffer = new byte[1024];
+        mmBuffer = new byte[65000];
         int numBytes; // bytes returned from read()
+        int messageSize;
 
         // Keep listening to the InputStream until an exception occurs.
         while (true) {
             try {
-                // Read from the InputStream.
                 numBytes = 0;
-                while (numBytes < 5)
-                    numBytes += mmInStream.read(mmBuffer);
+                // Try to read the first two bytes
+                while (numBytes < MessageConstants.MESG_FIELD_HEADER_SIZE)
+                    numBytes += mmInStream.read(mmBuffer, numBytes, MessageConstants.MESG_FIELD_HEADER_SIZE - numBytes);
+
+                // Calculate the next number of bytes to read
+                messageSize = (mmBuffer[1] << 8) | mmBuffer[2];
+                // Read the rest of the message
+                while (numBytes < messageSize + MessageConstants.MESG_FIELD_HEADER_SIZE)
+                    numBytes += mmInStream.read(mmBuffer, numBytes, messageSize + MessageConstants.MESG_FIELD_HEADER_SIZE - numBytes);
                 // Send the obtained bytes to the UI activity.
                 Message readMsg = mHandler.obtainMessage(
                         MessageConstants.MESSAGE_READ, numBytes, -1,

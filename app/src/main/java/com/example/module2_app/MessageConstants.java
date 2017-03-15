@@ -12,6 +12,7 @@ public interface MessageConstants {
 
     // Message IDs
     public static final int MOVE_COMMAND_TIME_ID = 0x01;
+    public static final int RESPONSE_ID = 0xF1;
 
     // Field Sizes
     public static final int MESG_FIELD_ID_SIZE = 1;
@@ -28,4 +29,8 @@ public interface MessageConstants {
     public static final int MOVE_DOWN = 3;
     public static final int MOVE_LEFT = 1;
     public static final int MOVE_RIGHT = 0;
+
+    // Response Codes
+    public static final int RESPONSE_NO_ERROR = 0x01;
+    public static final int RESPONSE_INVALID_PARAM = 0xF1;
 }
