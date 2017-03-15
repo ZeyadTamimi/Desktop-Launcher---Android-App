@@ -59,7 +59,7 @@ class CommunicationThread extends Thread {
                     numBytes += mmInStream.read(mmBuffer, numBytes, MessageConstants.MESG_FIELD_HEADER_SIZE - numBytes);
 
                 // Calculate the next number of bytes to read
-                messageSize = (((int)(mmBuffer[1] << 8)) + (((int) mmBuffer[2]) & 0xFF));
+                messageSize = (mmBuffer[1] << 8) + Util.uByte(mmBuffer[2]);
                 // Read the rest of the message
                 while (numBytes < messageSize + MessageConstants.MESG_FIELD_HEADER_SIZE)
                     numBytes += mmInStream.read(mmBuffer, numBytes, messageSize + MessageConstants.MESG_FIELD_HEADER_SIZE - numBytes);
@@ -103,8 +103,8 @@ class CommunicationThread extends Thread {
                 MessageConstants.MESG_MOVE_TIME_SIZE];
 
         moveCommand[0] = (byte) MessageConstants.MOVE_COMMAND_TIME_ID;
-        moveCommand[1] = (byte) MessageConstants.MESG_MOVE_TIME_SIZE >> 8;
-        moveCommand[2] = (byte) MessageConstants.MESG_MOVE_TIME_SIZE & 0xFF;
+        moveCommand[1] = (byte) (MessageConstants.MESG_MOVE_TIME_SIZE >> 8);
+        moveCommand[2] = (byte) (MessageConstants.MESG_MOVE_TIME_SIZE & 0xFF);
         moveCommand[3] = (byte) (direction & 0xFF);
         moveCommand[4] = (byte) ((time >> 24) & 0xFF);
         moveCommand[5] = (byte) ((time >> 16) & 0xFF);
@@ -117,8 +117,8 @@ class CommunicationThread extends Thread {
         byte[] message = new byte[MessageConstants.MESG_FIELD_HEADER_SIZE +
                 MessageConstants.MESG_REQUEST_SIZE];
         message[0] = (byte) MessageConstants.REQUEST_ID;
-        message[1] = (byte) MessageConstants.MESG_REQUEST_SIZE >> 8;
-        message[2] = (byte) MessageConstants.MESG_REQUEST_SIZE & 0xFF;
+        message[1] = (byte) (MessageConstants.MESG_REQUEST_SIZE >> 8);
+        message[2] = (byte) (MessageConstants.MESG_REQUEST_SIZE & 0xFF);
         message[MessageConstants.MESG_FIELD_HEADER_SIZE] = (byte) messageId;
         write(message);
     }
