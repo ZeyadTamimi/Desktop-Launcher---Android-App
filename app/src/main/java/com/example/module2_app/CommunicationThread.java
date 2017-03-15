@@ -59,13 +59,13 @@ class CommunicationThread extends Thread {
                     numBytes += mmInStream.read(mmBuffer, numBytes, MessageConstants.MESG_FIELD_HEADER_SIZE - numBytes);
 
                 // Calculate the next number of bytes to read
-                messageSize = (mmBuffer[1] << 8) | mmBuffer[2];
+                messageSize = (((int)(mmBuffer[1] << 8)) + (((int) mmBuffer[2]) & 0xFF));
                 // Read the rest of the message
                 while (numBytes < messageSize + MessageConstants.MESG_FIELD_HEADER_SIZE)
                     numBytes += mmInStream.read(mmBuffer, numBytes, messageSize + MessageConstants.MESG_FIELD_HEADER_SIZE - numBytes);
                 // Send the obtained bytes to the UI activity.
                 Message readMsg = mHandler.obtainMessage(
-                        MessageConstants.MESSAGE_READ, numBytes, -1,
+                        MessageConstants.MESSAGE_READ, messageSize, -1,
                         mmBuffer);
                 readMsg.sendToTarget();
             } catch (IOException e) {
@@ -111,6 +111,16 @@ class CommunicationThread extends Thread {
         moveCommand[6] = (byte) ((time >> 8) & 0xFF);
         moveCommand[7] = (byte) (time & 0xFF);
         write(moveCommand);
+    }
+
+    public void requestMessage(int messageId) {
+        byte[] message = new byte[MessageConstants.MESG_FIELD_HEADER_SIZE +
+                MessageConstants.MESG_REQUEST_SIZE];
+        message[0] = (byte) MessageConstants.REQUEST_ID;
+        message[1] = (byte) MessageConstants.MESG_REQUEST_SIZE >> 8;
+        message[2] = (byte) MessageConstants.MESG_REQUEST_SIZE & 0xFF;
+        message[MessageConstants.MESG_FIELD_HEADER_SIZE] = (byte) messageId;
+        write(message);
     }
 
     // Call this method from the main activity to shut down the connection.

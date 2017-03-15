@@ -46,11 +46,15 @@ public class MainActivity extends AppCompatActivity {
                     // TODO: Handle all types of messages
                     // TODO: Size check
                     byte[] receivevMessage = (byte[]) msg.obj;
-                    if (receivevMessage[0] == MessageConstants.RESPONSE_ID) {
-                        if (receivevMessage[3] == MessageConstants.RESPONSE_NO_ERROR)
+                    if (((int)receivevMessage[0] & 0xFF)== MessageConstants.RESPONSE_ID) {
+                        if (receivevMessage[3] == MessageConstants.RESPONSE_NO_ERROR) {
                             toast.out("Command Successfull!");
+                        }
                         else
                             toast.out("Command: " + receivevMessage[2] +" failed with code: " + receivevMessage[3]);
+                    }
+                    else if (((int)receivevMessage[0] & 0xFF) == MessageConstants.IMAGE_ID) {
+                        displayImage(receivevMessage, 3, (receivevMessage[1] << 8) + (((int)receivevMessage[2]) & 0xFF));
                     }
                     enableButtons(true);
                 }
@@ -161,6 +165,7 @@ public class MainActivity extends AppCompatActivity {
             default:
                 break;
         }
+        enableButtons(false);
         toast.out(toastMessage);
     }
 
@@ -187,7 +192,6 @@ public class MainActivity extends AppCompatActivity {
         if (mmCommunicationThread != null) {
             mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_LEFT, 500000);
         }
-        enableButtons(false);
     }
 
     private void fire() {
@@ -196,8 +200,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void takePicture() {
         toastMessage = "Taking Picture";
-        // TODO: display the actual image here
-        displayImage(new byte[1]);
+        mmCommunicationThread.requestMessage(MessageConstants.IMAGE_ID);
     }
 
     private void takePictureDelayed() {
@@ -223,10 +226,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // TODO: what format am I getting the image in
-    private void displayImage(byte[] byteArray) {
-        ByteArrayInputStream in = new ByteArrayInputStream(byteArray);
-        // Bitmap bitmap = BitmapFactory.decodeStream(in);
-        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.mipmap.space);
+    private void displayImage(byte[] byteArray, int offset, int size) {
+        ByteArrayInputStream in = new ByteArrayInputStream(byteArray, offset, size);
+        Bitmap bitmap = BitmapFactory.decodeStream(in);
+        // Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.mipmap.space);
         picture.setImageBitmap(Bitmap.createScaledBitmap(bitmap, picture.getWidth(), picture.getHeight(), false));
     }
 }

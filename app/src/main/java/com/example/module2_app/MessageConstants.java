@@ -13,6 +13,9 @@ public interface MessageConstants {
     // Message IDs
     public static final int MOVE_COMMAND_TIME_ID = 0x01;
     public static final int RESPONSE_ID = 0xF1;
+    public static final int REQUEST_ID = 0xF3;
+    public static final int IMAGE_ID = 0xF2;
+
 
     // Field Sizes
     public static final int MESG_FIELD_ID_SIZE = 1;
@@ -23,6 +26,7 @@ public interface MessageConstants {
 
     // Message Sizes
     public static final int MESG_MOVE_TIME_SIZE = 5;
+    public static final int MESG_REQUEST_SIZE = 1;
 
     // Move Directions
     public static final int MOVE_UP = 2;
