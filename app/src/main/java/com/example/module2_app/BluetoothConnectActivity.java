@@ -63,7 +63,6 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
         PairedlistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View v, int pos, long id) {
-                MainActivity.toast.out("Clicked");
                 if (mPairedAdapter.getConnection(pos)) {
                     mPairedAdapter.setDisconnected(pos);
                     myConnectThread.cancel();
@@ -71,11 +70,15 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
                 else {
                     mPairedAdapter.setConnected(pos);
                     myConnectThread = new ConnectThread(mPairedDeviceArray.get(pos));
-                    myConnectThread.setDaemon(true);
                     myConnectThread.start();
                 }
+                mPairedAdapter.notifyDataSetChanged();
             }
         });
+
+        if (myBluetoothSocket != null && !myBluetoothSocket.isConnected()) {
+            refresh();
+        }
     }
 
     @Override

@@ -26,22 +26,23 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class MainActivity extends AppCompatActivity {
-    private static final long WAIT_TIME = 2000;
-    private long timeLastMovement;
     private static final String TAG = "MY_APP_DEBUG_TAG";
-    public static String toastMessage = "MESSAGE";
+    private static final long WAIT_TIME = 2000;
+
     public static AppToast toast;
-    private CommunicationThread mmCommunicationThread;
+
+    private long timeLastMovement;
+    private String toastMessage = "MESSAGE";
 
     private RelativeLayout buttonsArea;
     private ImageView picture;
 
+    private CommunicationThread mmCommunicationThread;
     public Handler mHandler = new Handler() {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MessageConstants.MESSAGE_READ: {
-                    byte[] data = (byte[]) msg.obj;
-                    toast.out("Got " + msg.arg1 + " bytes");
+                    enableButtons(true);
                 }
             }
         }
@@ -60,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
 
         toast = new AppToast(getApplicationContext());
 
-        // Tabs - modes
+        // tabs: our modes
         TabLayout myModes = (TabLayout) findViewById(R.id.tab_layout_modes);
         myModes.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -81,19 +82,6 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-
-        // Bluetooth
-        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (mBluetoothAdapter == null) {
-            // Device does not support Bluetooth
-            toastMessage = "This device doesn't support bluetooth";
-            toast.out(toastMessage);
-        }
-
-        if (!mBluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            // startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-        }
     }
 
     @Override
@@ -103,6 +91,19 @@ public class MainActivity extends AppCompatActivity {
         inflater.inflate(R.menu.main_menu, menu);
 
         return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (BluetoothConnectActivity.myBluetoothSocket != null) {
+            mmCommunicationThread = new CommunicationThread(BluetoothConnectActivity.myBluetoothSocket, mHandler);
+            mmCommunicationThread.start();
+            enableButtons(true);
+        }
+        else {
+            enableButtons(false);
+        }
     }
 
     @Override
@@ -131,19 +132,15 @@ public class MainActivity extends AppCompatActivity {
         switch(view.getId()) {
             case R.id.button_up:
                 rotateUp();
-                takePhotoDelayed();
                 break;
             case R.id.button_down:
                 rotateDown();
-                takePhotoDelayed();
                 break;
             case R.id.button_right:
                 rotateRight();
-                takePhotoDelayed();
                 break;
             case R.id.button_left:
                 rotateLeft();
-                takePhotoDelayed();
                 break;
             case R.id.button_fire:
                 fire();
@@ -159,32 +156,40 @@ public class MainActivity extends AppCompatActivity {
 
     private void rotateUp() {
         toastMessage = "Rotating Up";
+        if (mmCommunicationThread != null) {
+            mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_UP, 100);
+        }
     }
     private void rotateDown() {
         toastMessage = "Rotating Down";
+        if (mmCommunicationThread != null) {
+            mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_DOWN, 100);
+        }
     }
     private void rotateRight() {
         toastMessage = "Rotating Right";
+        if (mmCommunicationThread != null) {
+            mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_RIGHT, 500000);
+        }
     }
     private void rotateLeft() {
         toastMessage = "Rotating Left";
+        if (mmCommunicationThread != null) {
+            mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_LEFT, 500000);
+        }
     }
+
     private void fire() {
         toastMessage = "Firing";
-        mmCommunicationThread = new CommunicationThread(BluetoothConnectActivity.myBluetoothSocket, mHandler);
-        mmCommunicationThread.start();
     }
+
     public void takePicture() {
         toastMessage = "Taking Picture";
         // TODO: display the actual image here
-        byte[] testByte = new byte[35000];
-        for (int i = 0; i < 35000; i++)
-            testByte[i] = (byte) i;
-        mmCommunicationThread.write(testByte);
         displayImage(new byte[1]);
     }
 
-    private void takePhotoDelayed() {
+    private void takePictureDelayed() {
         timeLastMovement = System.currentTimeMillis();
         Handler handler = new Handler();
         handler.postDelayed(new Runnable() {

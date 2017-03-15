@@ -102,6 +102,7 @@ class CommunicationThread extends Thread {
         moveCommand[5] = (byte) ((time >> 16) & 0xFF);
         moveCommand[6] = (byte) ((time >> 8) & 0xFF);
         moveCommand[7] = (byte) (time & 0xFF);
+        write(moveCommand);
     }
 
     // Call this method from the main activity to shut down the connection.
