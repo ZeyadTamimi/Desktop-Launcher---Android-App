@@ -90,6 +90,20 @@ class CommunicationThread extends Thread {
         }
     }
 
+    public void commandMoveTime(int direction, long time) {
+        byte[] moveCommand = new byte[MessageConstants.MESG_FIELD_HEADER_SIZE +
+                MessageConstants.MESG_MOVE_TIME_SIZE];
+
+        moveCommand[0] = (byte) MessageConstants.MOVE_COMMAND_TIME_ID;
+        moveCommand[1] = (byte) MessageConstants.MESG_MOVE_TIME_SIZE >> 8;
+        moveCommand[2] = (byte) MessageConstants.MESG_MOVE_TIME_SIZE & 0xFF;
+        moveCommand[3] = (byte) (direction & 0xFF);
+        moveCommand[4] = (byte) ((time >> 24) & 0xFF);
+        moveCommand[5] = (byte) ((time >> 16) & 0xFF);
+        moveCommand[6] = (byte) ((time >> 8) & 0xFF);
+        moveCommand[7] = (byte) (time & 0xFF);
+    }
+
     // Call this method from the main activity to shut down the connection.
     public void cancel() {
         try {
