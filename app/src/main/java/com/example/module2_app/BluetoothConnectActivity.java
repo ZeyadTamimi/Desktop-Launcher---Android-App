@@ -80,7 +80,7 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
             refresh();
         }
     }
-
+/*
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -89,7 +89,7 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
 
         return super.onCreateOptionsMenu(menu);
     }
-
+*/
     public void buttonPress(View view) {
         switch(view.getId()) {
             case R.id.button_refresh:

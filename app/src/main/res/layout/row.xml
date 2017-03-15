@@ -7,18 +7,19 @@
     android:background="@drawable/list_selector" >
     <ImageView
         android:id="@+id/BTicon"
-        android:layout_width="30pt"
-        android:layout_height="30pt"
+        android:layout_width="10pt"
+        android:layout_height="10pt"
         android:layout_centerVertical="true"
         android:layout_alignParentLeft="true" />
     <TextView
         android:id="@+id/BTdeviceText"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@+id/BTicon"
+        android:layout_height="30pt"
         android:layout_centerVertical="true"
         android:paddingLeft="16dp"
-        android:textSize="17sp" />
+        android:textSize="17sp"
+        android:layout_toRightOf="@+id/BTicon"
+        android:gravity="center_vertical"/>
     <ImageView
         android:id="@+id/Selected"
         android:layout_width="15pt"

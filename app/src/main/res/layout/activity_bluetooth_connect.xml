@@ -22,31 +22,42 @@
 
         <TextView
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="Turrets Available"
-            android:textAlignment="viewStart"
+            android:layout_height="56dp"
+            android:layout_weight="0.41"
+            android:text="      Available Devices"
             android:textAppearance="@style/TextAppearance.AppCompat"
-            android:textSize="14sp" />
+            android:textSize="14sp"
+            android:gravity="center_vertical"
+            android:textColor="#FFbb0000"/>
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/button_refresh"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="0.05"
             android:clickable="true"
             android:onClick="buttonPress"
             app:backgroundTint="?attr/colorButtonNormal"
             app:fabSize="mini"
-            app:srcCompat="@drawable/ic_refresh_black_48dp" />
+            app:srcCompat="@drawable/ic_refresh_black_48dp"
+            android:layout_gravity="center_vertical"/>
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.03" />
 
     </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#bdbdbd"/>
 
     <ListView
         android:id="@+id/paired_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#b09000"
+        android:background="#bdbdbd"
         android:padding="0dp"></ListView>
 
 </LinearLayout>
