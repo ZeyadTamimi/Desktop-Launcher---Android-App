@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Message;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -111,6 +113,8 @@ public class MainActivity extends AppCompatActivity {
         inflater.inflate(R.menu.main_menu, menu);
 
         return super.onCreateOptionsMenu(menu);
+
+
     }
 
     @Override
@@ -177,21 +181,23 @@ public class MainActivity extends AppCompatActivity {
         toast.out(toastMessage);
     }
 
+
+
     private void rotateUp() {
         toastMessage = "Up";
-        mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_UP, 100);
+        mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_UP, 33*(State.turret_speed_bar_value+1));
     }
     private void rotateDown() {
         toastMessage = "Down";
-        mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_DOWN, 100);
+        mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_DOWN, 33*(State.turret_speed_bar_value+1));
     }
     private void rotateRight() {
         toastMessage = "Right";
-        mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_RIGHT, 500000);
+        mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_RIGHT, 16666*(State.turret_speed_bar_value+1));
     }
     private void rotateLeft() {
         toastMessage = "Left";
-        mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_LEFT, 500000);
+        mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_LEFT, 16666*(State.turret_speed_bar_value+1));
     }
 
     private void fire() {
