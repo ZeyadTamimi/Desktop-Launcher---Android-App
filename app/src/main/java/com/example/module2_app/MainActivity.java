@@ -1,7 +1,5 @@
 package com.example.module2_app;
 
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -12,19 +10,15 @@ import android.support.design.widget.TabLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 public class MainActivity extends AppCompatActivity {
     private static final long WAIT_TIME = 2000;
@@ -35,7 +29,8 @@ public class MainActivity extends AppCompatActivity {
     private String toastMessage = "MESSAGE";
 
     private RelativeLayout buttonsArea;
-    private TabLayout modesArea;
+    private TabLayout tabLayout;
+    private LinearLayout tabStrip;
     private ImageView picture;
     private CommunicationThread mmCommunicationThread;
 
@@ -57,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
                     else if (Util.uByte(receivevMessage[0]) == MessageConstants.ID_MESG_IMAGE) {
                         displayImage(receivevMessage, 3, (receivevMessage[1] << 8) + Util.uByte(receivevMessage[2]));
                     }
-                    enableButtons(true);
+                    enableOnClicks(true);
                 }
             }
         }
@@ -77,14 +72,15 @@ public class MainActivity extends AppCompatActivity {
         toast = new AppToast(getApplicationContext());
 
         // tabs: our modes
-        modesArea = (TabLayout) findViewById(R.id.tab_layout_modes);
-        modesArea.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+        tabLayout = (TabLayout) findViewById(R.id.tab_layout_modes);
+        tabStrip = ((LinearLayout) tabLayout.getChildAt(0));
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 toastMessage = tab.getText().toString();
                 toast.out(toastMessage);
                 // TODO: hardcoded here
-                enableButtons(toastMessage.equals("MANUAL"));
+                enableOnClicks(toastMessage.equals("MANUAL"));
             }
 
             @Override
@@ -114,10 +110,10 @@ public class MainActivity extends AppCompatActivity {
         if (BluetoothConnectActivity.myBluetoothSocket != null) {
             mmCommunicationThread = new CommunicationThread(BluetoothConnectActivity.myBluetoothSocket, mHandler);
             mmCommunicationThread.start();
-            enableButtons(true);
+            enableOnClicks(true);
         }
         else {
-            enableButtons(false);
+            enableOnClicks(false);
         }
     }
 
@@ -144,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void buttonPress(View view) {
-        enableButtons(false);
+        enableOnClicks(false);
         switch(view.getId()) {
             case R.id.button_up:
                 rotateUp();
@@ -211,11 +207,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // TODO: can do a slow fade
-    private void enableButtons(boolean enable) {
+    private void enableOnClicks(boolean enable) {
         for (int i = 0; i < buttonsArea.getChildCount(); i++) {
-            FloatingActionButton btn = (FloatingActionButton) buttonsArea.getChildAt(i);
-            btn.setAlpha(enable ? 1f : 0.3f);
-            btn.setClickable(enable);
+            buttonsArea.getChildAt(i).setAlpha(enable ? 1f : 0.3f);
+            buttonsArea.getChildAt(i).setClickable(enable);
+        }
+
+        for(int i = 0; i < tabStrip.getChildCount(); i++) {
+            tabStrip.getChildAt(i).setAlpha(enable ? 1f : 0.3f);
+            tabStrip.getChildAt(i).setClickable(enable);
         }
     }
 
