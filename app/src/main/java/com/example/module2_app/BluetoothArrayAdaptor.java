@@ -12,11 +12,18 @@ import java.util.ArrayList;
 
 
 public class BluetoothArrayAdaptor extends ArrayAdapter<String> {
+
+    enum ConnectionState {
+        CONNECTED,
+        CONNECTING,
+        DISCONNECTED;
+    }
+
     // my new class variables, copies of constructor params, but add more if required
     private Context context ;
     private ArrayList<String> theStringArray;
     public final int numRows = 500 ;
-    private boolean [] RowConnection = new boolean [numRows];
+    private ConnectionState[] RowConnection = new ConnectionState[numRows];
     // constructor
     public BluetoothArrayAdaptor(Context _context,
                                  int textViewResourceId,
@@ -42,24 +49,33 @@ public class BluetoothArrayAdaptor extends ArrayAdapter<String> {
         TextView label = (TextView) row.findViewById( R.id.BTdeviceText);
         label.setText (theStringArray.get(position));
         icon = (ImageView) row.findViewById (R.id.Selected);
-        if(RowConnection[position] == false)
-            icon.setImageResource (R.drawable.checkbox_blank_outline);
-        else
-            icon.setImageResource(R.drawable.checkbox_marked);
+
+        switch (getConnection(position)) {
+            case DISCONNECTED:
+                row.findViewById(R.id.Connecting).setVisibility(View.GONE);
+                icon.setVisibility(View.VISIBLE);
+                icon.setImageResource(R.drawable.checkbox_blank_outline);
+                break;
+            case CONNECTED:
+                row.findViewById(R.id.Connecting).setVisibility(View.GONE);
+                icon.setVisibility(View.VISIBLE);
+                icon.setImageResource(R.drawable.checkbox_marked);
+                break;
+            case CONNECTING:
+                icon.setVisibility(View.GONE);
+                row.findViewById(R.id.Connecting).setVisibility(View.VISIBLE);
+                break;
+        }
+
         icon.setVisibility (View.VISIBLE);
 
         return row;
     }
 
-    public void setConnected (int position) {RowConnection [position] = true ; }
-    public void setDisconnected (int position) {RowConnection [position] = false ; }
-    public boolean getConnection(int position) {return RowConnection[position];}
+    public void setState(int position, ConnectionState state) {RowConnection [position] = state; }
+    public ConnectionState getConnection(int position) {return RowConnection[position];}
     public void clearConnection () {
         for(int i = 0; i < numRows; i ++)
-            RowConnection[i] = false ;
+            setState(i, ConnectionState.DISCONNECTED);
     }
-
-
-
-
 }

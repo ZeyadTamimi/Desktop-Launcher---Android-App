@@ -8,7 +8,8 @@ public interface MessageConstants {
     public static final int MESSAGE_READ = 0;
     public static final int MESSAGE_WRITE = 1;
     public static final int MESSAGE_TOAST = 2;
-
+    public static final int MESSAGE_CONNECT_SUCCESS = 3;
+    public static final int MESSAGE_CONNECT_FAIL = 4;
 
     // Message IDs
     public static final int ID_COMMAND_MOVE_TIME = 0x01;

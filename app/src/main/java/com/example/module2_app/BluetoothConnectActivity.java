@@ -23,9 +23,6 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
     private static final String TAG = "MY_APP_DEBUG_TAG";
     private static final int REQUEST_ENABLE_BT = 1;
 
-    private BluetoothArrayAdaptor mPairedAdapter;
-    private ArrayList<String> mPairedStringArray;
-    private ArrayList<BluetoothDevice> mPairedDeviceArray;
     private BluetoothAdapter mBluetoothAdapter;
 
     private TextView mTextConnected;
@@ -34,7 +31,14 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
     public Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            setConnected(msg.arg1);
+            switch (msg.what) {
+                case MessageConstants.MESSAGE_CONNECT_SUCCESS:
+                    setConnected(msg.arg1);
+                    break;
+                case MessageConstants.MESSAGE_CONNECT_FAIL:
+                    setConnected(msg.arg1);
+                    break;
+            }
         }
     };
 
@@ -47,15 +51,21 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
         ActionBar ab = getSupportActionBar();
         ab.setDisplayHomeAsUpEnabled(true);
 
-        mPairedStringArray = new ArrayList<>();
-        mPairedDeviceArray = new ArrayList<>();
+        if (State.mPairedStringArray == null) {
+            State.mPairedStringArray = new ArrayList<>();
+        }
+        if (State.mPairedDeviceArray == null) {
+            State.mPairedDeviceArray = new ArrayList<>();
+        }
 
-        mPairedAdapter = new BluetoothArrayAdaptor(this,
-                android.R.layout.simple_list_item_1,
-                mPairedStringArray);
+        if (State.mPairedAdapter == null) {
+            State.mPairedAdapter = new BluetoothArrayAdaptor(this,
+                    android.R.layout.simple_list_item_1,
+                    State.mPairedStringArray);
+        }
 
         ListView PairedlistView = (ListView) findViewById(R.id.paired_list);
-        PairedlistView.setAdapter(mPairedAdapter);
+        PairedlistView.setAdapter(State.mPairedAdapter);
 
         mTextConnected = (TextView) findViewById(R.id.text_connected_status);
 
@@ -73,18 +83,26 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
         PairedlistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View v, int pos, long id) {
-                if (mPairedAdapter.getConnection(pos)) {
+                if (State.mPairedAdapter.getConnection(pos) == BluetoothArrayAdaptor.ConnectionState.CONNECTED) {
                     btConnectThread.cancel();
                     setConnected(pos);
                 }
-                else {
-                    btConnectThread = new ConnectThread(mPairedDeviceArray.get(pos), mHandler, pos);
+                else if (btConnectThread == null || !btConnectThread.isAlive()) {
+                    btConnectThread = new ConnectThread(State.mPairedDeviceArray.get(pos), mHandler, pos);
                     btConnectThread.start();
+                    setConnected(pos);
                 }
             }
         });
+    }
 
-        if (!State.btConnected()) {
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (State.btConnected()) {
+            setConnected(State.lastConnectedPos);
+        }
+        else {
             refresh();
         }
     }
@@ -97,28 +115,32 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
     }
 
     public void refresh() {
-        MainActivity.toast.out("REFRESH");
-        mPairedStringArray.clear();
-        mPairedDeviceArray.clear();
+        // MainActivity.toast.out("REFRESH");
+        State.mPairedStringArray.clear();
+        State.mPairedDeviceArray.clear();
         for (BluetoothDevice d : mBluetoothAdapter.getBondedDevices()) {
             if (d.getName().startsWith("DTL")) {
-                mPairedStringArray.add(d.getName());
-                mPairedDeviceArray.add(d);
+                State.mPairedStringArray.add(d.getName());
+                State.mPairedDeviceArray.add(d);
             }
         }
-        mPairedAdapter.notifyDataSetChanged();
+        State.mPairedAdapter.notifyDataSetChanged();
     }
 
     public void setConnected(int pos) {
         if (State.btConnected()) {
-            mTextConnected.setText("CONNECTED TO " + mPairedDeviceArray.get(pos).getName());
-            mPairedAdapter.setConnected(pos);
+            mTextConnected.setText("CONNECTED TO " + State.mPairedDeviceArray.get(pos).getName());
+            State.mPairedAdapter.setState(pos, BluetoothArrayAdaptor.ConnectionState.CONNECTED);
+        }
+        else if (!State.btConnected() && btConnectThread != null && btConnectThread.isAlive()) {
+            mTextConnected.setText("-- CONNECTING --");
+            State.mPairedAdapter.setState(pos, BluetoothArrayAdaptor.ConnectionState.CONNECTING);
         }
         else {
-            mTextConnected.setText("-- NOT CONNEC   TED --");
-            mPairedAdapter.setDisconnected(pos);
+            mTextConnected.setText("-- NOT CONNECTED --");
+            State.mPairedAdapter.setState(pos, BluetoothArrayAdaptor.ConnectionState.DISCONNECTED);
         }
-        mPairedAdapter.notifyDataSetChanged();
+        State.mPairedAdapter.notifyDataSetChanged();
     }
 
     private class ConnectThread extends Thread {
@@ -126,6 +148,7 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
         private final BluetoothDevice mmDevice;
         private final Handler mmHanlder;
         private final int mPos;
+
         public ConnectThread(BluetoothDevice device, Handler handler, int pos) {
             // Use a temporary object that is later assigned to mmSocket
             // because mmSocket is final.
@@ -154,6 +177,7 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
                 // until it succeeds or throws an exception.
                 mmSocket.connect();
             } catch (IOException connectException) {
+                mHandler.obtainMessage(MessageConstants.MESSAGE_CONNECT_FAIL, mPos).sendToTarget();
                 // Unable to connect; close the socket and return.
                 try {
                     mmSocket.close();
@@ -166,7 +190,8 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
             // The connection attempt succeeded. Perform work associated with
             // the connection in a separate thread.
             com.example.module2_app.State.setBtSocket(mmSocket);
-            mHandler.obtainMessage(MessageConstants.MESSAGE_READ, mPos).sendToTarget();
+            com.example.module2_app.State.lastConnectedPos = mPos;
+            mHandler.obtainMessage(MessageConstants.MESSAGE_CONNECT_SUCCESS, mPos).sendToTarget();
         }
 
         // Closes the client socket and causes the thread to finish.

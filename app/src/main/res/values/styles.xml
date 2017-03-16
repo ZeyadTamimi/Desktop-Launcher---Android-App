@@ -14,4 +14,8 @@
         <!-- colorControlActivated & colorControlHighlight use the colorAccent color by default -->
     </style>
 
+    <style name="redStyle">
+        <item name="colorAccent"> #ffbb0000 </item>
+    </style>
+
 </resources>

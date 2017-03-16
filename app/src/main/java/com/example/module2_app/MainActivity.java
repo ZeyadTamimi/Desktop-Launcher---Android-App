@@ -10,6 +10,7 @@ import android.support.design.widget.TabLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -38,7 +39,6 @@ public class MainActivity extends AppCompatActivity {
     private ImageView mPictureView;
     private ProgressBar mPictureLoading;
     private TextView mTextNotConnected;
-    private CommunicationThread mmCommunicationThread;
 
     public Handler mHandler = new Handler() {
         @Override
@@ -50,14 +50,15 @@ public class MainActivity extends AppCompatActivity {
                     byte[] receivevMessage = (byte[]) msg.obj;
                     if (Util.uByte(receivevMessage[0]) == MessageConstants.ID_RESPONSE) {
                         if (Util.uByte(receivevMessage[4]) == MessageConstants.RESPONSE_NO_ERROR) {
-                            toast.out("Command Successful!");
+                            toastMessage = "Command Successful!";
                         }
                         else if (Util.uByte(receivevMessage[4]) == MessageConstants.RESPONSE_NIOS_HANDSHAKE) {
-                            toast.out("Handshake!");
+                            toastMessage = "Handshake!";
                         }
                         else {
-                            toast.out("Command: " + receivevMessage[2] + " failed with code: " + receivevMessage[3]);
+                            toastMessage = "Command: " + receivevMessage[2] + " failed with code: " + receivevMessage[3];
                         }
+                        // toast.out(toastMessage);
                     }
                     else if (Util.uByte(receivevMessage[0]) == MessageConstants.ID_MESG_IMAGE) {
                         displayImage(receivevMessage, 3, (receivevMessage[1] << 8) + Util.uByte(receivevMessage[2]));
@@ -71,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.i("info", "Main onCreate()");
         setContentView(R.layout.activity_main);
 
         Toolbar myToolbar = (Toolbar) findViewById(R.id.activity_main_toolbar);
@@ -116,22 +118,44 @@ public class MainActivity extends AppCompatActivity {
         inflater.inflate(R.menu.main_menu, menu);
 
         return super.onCreateOptionsMenu(menu);
-
-
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        Log.i("info", "Main onResume()");
         if (State.btConnected()) {
-            mmCommunicationThread = new CommunicationThread(State.getBtSocket(), mHandler);
-            mmCommunicationThread.start();
+            if (State.mmCommunicationThread == null) {
+                State.mmCommunicationThread = new CommunicationThread(State.getBtSocket(), mHandler);
+                State.mmCommunicationThread.start();
+            }
             showNotConnected(false);
         }
         else {
             enableActions(false);
             showNotConnected(true);
         }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        Log.i("info", "Main onStop()");
+        Log.i("info", "isFinishing() - " + String.valueOf(isFinishing()));
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.i("info", "Main onPause()");
+        Log.i("info", "isFinishing() - " + String.valueOf(isFinishing()));
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.i("info", "Main onDestroy()");
+        Log.i("info", "isFinishing() - " + String.valueOf(isFinishing()));
     }
 
     @Override
@@ -180,37 +204,37 @@ public class MainActivity extends AppCompatActivity {
             default:
                 break;
         }
-        toast.out(toastMessage);
+        // toast.out(toastMessage);
     }
 
 
 
     private void rotateUp() {
         toastMessage = "Up";
-        mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_UP, 33*(State.turret_speed_bar_value+1));
+        State.mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_UP, 0);
     }
     private void rotateDown() {
         toastMessage = "Down";
-        mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_DOWN, 33*(State.turret_speed_bar_value+1));
+        State.mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_DOWN, 0);
     }
     private void rotateRight() {
         toastMessage = "Right";
-        mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_RIGHT, 16666*(State.turret_speed_bar_value+1));
+        State.mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_RIGHT, 50000);
     }
     private void rotateLeft() {
         toastMessage = "Left";
-        mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_LEFT, 16666*(State.turret_speed_bar_value+1));
+        State.mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_LEFT, 50000);
     }
 
     private void fire() {
         toastMessage = "Fire";
-        mmCommunicationThread.commandFire();
+        State.mmCommunicationThread.commandFire();
     }
 
     public void takePicture() {
         showLoading(true);
         toastMessage = "Take Picture";
-        mmCommunicationThread.requestMessage(MessageConstants.ID_MESG_IMAGE);
+        State.mmCommunicationThread.requestMessage(MessageConstants.ID_MESG_IMAGE);
     }
 
     private void takePictureDelayed() {
