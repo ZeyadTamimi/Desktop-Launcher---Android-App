@@ -1,7 +1,5 @@
 package com.example.module2_app;
 
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -12,21 +10,17 @@ import android.support.design.widget.TabLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = "MY_APP_DEBUG_TAG";
     private static final long WAIT_TIME = 2000;
 
     public static AppToast toast;
@@ -35,9 +29,11 @@ public class MainActivity extends AppCompatActivity {
     private String toastMessage = "MESSAGE";
 
     private RelativeLayout buttonsArea;
+    private TabLayout tabLayout;
+    private LinearLayout tabStrip;
     private ImageView picture;
-
     private CommunicationThread mmCommunicationThread;
+
     public Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -56,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
                     else if (Util.uByte(receivevMessage[0]) == MessageConstants.ID_MESG_IMAGE) {
                         displayImage(receivevMessage, 3, (receivevMessage[1] << 8) + Util.uByte(receivevMessage[2]));
                     }
-                    enableButtons(true);
+                    enableOnClicks(true);
                 }
             }
         }
@@ -76,14 +72,15 @@ public class MainActivity extends AppCompatActivity {
         toast = new AppToast(getApplicationContext());
 
         // tabs: our modes
-        TabLayout myModes = (TabLayout) findViewById(R.id.tab_layout_modes);
-        myModes.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+        tabLayout = (TabLayout) findViewById(R.id.tab_layout_modes);
+        tabStrip = ((LinearLayout) tabLayout.getChildAt(0));
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 toastMessage = tab.getText().toString();
                 toast.out(toastMessage);
                 // TODO: hardcoded here
-                enableButtons(toastMessage.equals("MANUAL"));
+                enableOnClicks(toastMessage.equals("MANUAL"));
             }
 
             @Override
@@ -113,10 +110,10 @@ public class MainActivity extends AppCompatActivity {
         if (BluetoothConnectActivity.myBluetoothSocket != null) {
             mmCommunicationThread = new CommunicationThread(BluetoothConnectActivity.myBluetoothSocket, mHandler);
             mmCommunicationThread.start();
-            enableButtons(true);
+            enableOnClicks(true);
         }
         else {
-            enableButtons(false);
+            enableOnClicks(false);
         }
     }
 
@@ -143,6 +140,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void buttonPress(View view) {
+        enableOnClicks(false);
         switch(view.getId()) {
             case R.id.button_up:
                 rotateUp();
@@ -165,45 +163,33 @@ public class MainActivity extends AppCompatActivity {
             default:
                 break;
         }
-        enableButtons(false);
         toast.out(toastMessage);
     }
 
     private void rotateUp() {
-        toastMessage = "Rotating Up";
-        if (mmCommunicationThread != null) {
-            mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_UP, 100);
-        }
+        toastMessage = "Up";
+        mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_UP, 100);
     }
     private void rotateDown() {
-        toastMessage = "Rotating Down";
-        if (mmCommunicationThread != null) {
-            mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_DOWN, 100);
-        }
+        toastMessage = "Down";
+        mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_DOWN, 100);
     }
     private void rotateRight() {
-        toastMessage = "Rotating Right";
-        if (mmCommunicationThread != null) {
-            mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_RIGHT, 500000);
-        }
+        toastMessage = "Right";
+        mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_RIGHT, 500000);
     }
     private void rotateLeft() {
-        toastMessage = "Rotating Left";
-        if (mmCommunicationThread != null) {
-            mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_LEFT, 500000);
-        }
+        toastMessage = "Left";
+        mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_LEFT, 500000);
     }
 
     private void fire() {
-
-        toastMessage = "Firing";
-        if (mmCommunicationThread != null) {
-            mmCommunicationThread.commandFire();
-        }
+        toastMessage = "Fire";
+        mmCommunicationThread.commandFire();
     }
 
     public void takePicture() {
-        toastMessage = "Taking Picture";
+        toastMessage = "Take Picture";
         mmCommunicationThread.requestMessage(MessageConstants.ID_MESG_IMAGE);
     }
 
@@ -221,19 +207,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // TODO: can do a slow fade
-    private void enableButtons(boolean enable) {
+    private void enableOnClicks(boolean enable) {
         for (int i = 0; i < buttonsArea.getChildCount(); i++) {
-            FloatingActionButton btn = (FloatingActionButton) buttonsArea.getChildAt(i);
-            btn.setAlpha(enable ? 1f : 0.3f);
-            btn.setClickable(enable);
+            buttonsArea.getChildAt(i).setAlpha(enable ? 1f : 0.3f);
+            buttonsArea.getChildAt(i).setClickable(enable);
+        }
+
+        for(int i = 0; i < tabStrip.getChildCount(); i++) {
+            tabStrip.getChildAt(i).setAlpha(enable ? 1f : 0.3f);
+            tabStrip.getChildAt(i).setClickable(enable);
         }
     }
 
-    // TODO: what format am I getting the image in
     private void displayImage(byte[] byteArray, int offset, int size) {
         ByteArrayInputStream in = new ByteArrayInputStream(byteArray, offset, size);
         Bitmap bitmap = BitmapFactory.decodeStream(in);
-        // Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.mipmap.space);
         picture.setImageBitmap(Bitmap.createScaledBitmap(bitmap, picture.getWidth(), picture.getHeight(), false));
     }
 }
