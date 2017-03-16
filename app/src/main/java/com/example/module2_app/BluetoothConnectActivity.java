@@ -9,8 +9,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -27,8 +25,8 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
     private ArrayList<BluetoothDevice> mPairedDeviceArray;
     private BluetoothAdapter mBluetoothAdapter;
 
-    public static ConnectThread myConnectThread;
-    public static BluetoothSocket myBluetoothSocket;
+    public static ConnectThread btConnectThread;
+    public static BluetoothSocket btSocket;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,18 +63,18 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View v, int pos, long id) {
                 if (mPairedAdapter.getConnection(pos)) {
                     mPairedAdapter.setDisconnected(pos);
-                    myConnectThread.cancel();
+                    btConnectThread.cancel();
                 }
                 else {
                     mPairedAdapter.setConnected(pos);
-                    myConnectThread = new ConnectThread(mPairedDeviceArray.get(pos));
-                    myConnectThread.start();
+                    btConnectThread = new ConnectThread(mPairedDeviceArray.get(pos));
+                    btConnectThread.start();
                 }
                 mPairedAdapter.notifyDataSetChanged();
             }
         });
 
-        if (myBluetoothSocket != null && !myBluetoothSocket.isConnected()) {
+        if (btSocket == null || !btSocket.isConnected()) {
             refresh();
         }
     }
@@ -93,8 +91,10 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
         mPairedStringArray.clear();
         mPairedDeviceArray.clear();
         for (BluetoothDevice d : mBluetoothAdapter.getBondedDevices()) {
-            mPairedStringArray.add(d.getAddress());
-            mPairedDeviceArray.add(d);
+            if (d.getName().startsWith("DTL")) {
+                mPairedStringArray.add(d.getName());
+                mPairedDeviceArray.add(d);
+            }
         }
         mPairedAdapter.notifyDataSetChanged();
     }
@@ -119,6 +119,7 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
             mmSocket = tmp;
         }
 
+        @Override
         public void run() {
             // Cancel discovery because it otherwise slows down the connection.
             mBluetoothAdapter.cancelDiscovery();
@@ -139,7 +140,7 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
 
             // The connection attempt succeeded. Perform work associated with
             // the connection in a separate thread.
-            myBluetoothSocket = mmSocket;
+            btSocket = mmSocket;
         }
 
         // Closes the client socket and causes the thread to finish.

@@ -5,13 +5,8 @@ import android.os.Handler;
 import android.widget.Toast;
 
 public class AppToast {
-    private static final long WAIT_TIME = 2000;
-
     private Toast toast;
     private Context context;
-
-    private String delayMessage;
-    private long lastTime;
 
     public AppToast(Context context) {
         this.context = context;
@@ -30,20 +25,5 @@ public class AppToast {
                 toast.cancel();
             }
         }, 250);
-    }
-
-    public void outWithDelayed(String message) {
-        out(message);
-        delayMessage = message;
-        lastTime = System.currentTimeMillis();
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (System.currentTimeMillis() >= lastTime + WAIT_TIME) {
-                    
-                }
-            }
-        }, WAIT_TIME);
     }
 }

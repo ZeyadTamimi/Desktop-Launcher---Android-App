@@ -5,7 +5,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Message;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -16,7 +15,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import java.io.ByteArrayInputStream;
 
@@ -25,13 +26,16 @@ public class MainActivity extends AppCompatActivity {
 
     public static AppToast toast;
 
-    private long timeLastMovement;
+    private long mTimeLastMovement;
+    private boolean mAllowActions;
     private String toastMessage = "MESSAGE";
 
-    private RelativeLayout buttonsArea;
-    private TabLayout tabLayout;
-    private LinearLayout tabStrip;
-    private ImageView picture;
+    private RelativeLayout mButtonsArea;
+    private TabLayout mTabLayout;
+    private LinearLayout mTabStrip;
+    private ImageView mPictureView;
+    private ProgressBar mPictureLoading;
+    private TextView mTextNotConnected;
     private CommunicationThread mmCommunicationThread;
 
     public Handler mHandler = new Handler() {
@@ -42,17 +46,18 @@ public class MainActivity extends AppCompatActivity {
                     // TODO: Handle all types of messages
                     // TODO: Size check
                     byte[] receivevMessage = (byte[]) msg.obj;
-                    if (Util.uByte(receivevMessage[0])== MessageConstants.ID_RESPONSE) {
+                    if (Util.uByte(receivevMessage[0]) == MessageConstants.ID_RESPONSE) {
                         if (Util.uByte(receivevMessage[4]) == MessageConstants.RESPONSE_NO_ERROR) {
                             toast.out("Command Successfull!");
                         }
-                        else
-                            toast.out("Command: " + receivevMessage[2] +" failed with code: " + receivevMessage[3]);
+                        else {
+                            toast.out("Command: " + receivevMessage[2] + " failed with code: " + receivevMessage[3]);
+                        }
                     }
                     else if (Util.uByte(receivevMessage[0]) == MessageConstants.ID_MESG_IMAGE) {
                         displayImage(receivevMessage, 3, (receivevMessage[1] << 8) + Util.uByte(receivevMessage[2]));
                     }
-                    enableOnClicks(true);
+                    enableButtons(true);
                 }
             }
         }
@@ -66,21 +71,25 @@ public class MainActivity extends AppCompatActivity {
         Toolbar myToolbar = (Toolbar) findViewById(R.id.activity_main_toolbar);
         setSupportActionBar(myToolbar);
 
-        buttonsArea = (RelativeLayout) findViewById(R.id.section_buttons);
-        picture = (ImageView) findViewById(R.id.iv_picture);
+        mButtonsArea = (RelativeLayout) findViewById(R.id.section_buttons);
+        mPictureView = (ImageView) findViewById(R.id.iv_picture);
+        mPictureLoading = (ProgressBar) findViewById(R.id.icon_loading_picture);
+        mTextNotConnected = (TextView) findViewById(R.id.text_not_connected);
 
         toast = new AppToast(getApplicationContext());
 
         // tabs: our modes
-        tabLayout = (TabLayout) findViewById(R.id.tab_layout_modes);
-        tabStrip = ((LinearLayout) tabLayout.getChildAt(0));
-        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+        mTabLayout = (TabLayout) findViewById(R.id.tab_layout_modes);
+        mTabStrip = ((LinearLayout) mTabLayout.getChildAt(0));
+        mTabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 toastMessage = tab.getText().toString();
                 toast.out(toastMessage);
-                // TODO: hardcoded here
-                enableOnClicks(toastMessage.equals("MANUAL"));
+                if (mAllowActions) {
+                    // TODO: hardcoded here
+                    enableButtons(toastMessage.equals("MANUAL"));
+                }
             }
 
             @Override
@@ -107,13 +116,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        if (BluetoothConnectActivity.myBluetoothSocket != null) {
-            mmCommunicationThread = new CommunicationThread(BluetoothConnectActivity.myBluetoothSocket, mHandler);
+        if (BluetoothConnectActivity.btSocket != null && BluetoothConnectActivity.btSocket.isConnected()) {
+            mmCommunicationThread = new CommunicationThread(BluetoothConnectActivity.btSocket, mHandler);
             mmCommunicationThread.start();
-            enableOnClicks(true);
+            enableActions(true);
+            showNotConnected(false);
         }
         else {
-            enableOnClicks(false);
+            enableActions(false);
+            showNotConnected(true);
         }
     }
 
@@ -140,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void buttonPress(View view) {
-        enableOnClicks(false);
+        enableActions(false);
         switch(view.getId()) {
             case R.id.button_up:
                 rotateUp();
@@ -189,40 +200,54 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void takePicture() {
+        showLoading(true);
         toastMessage = "Take Picture";
         mmCommunicationThread.requestMessage(MessageConstants.ID_MESG_IMAGE);
     }
 
     private void takePictureDelayed() {
-        timeLastMovement = System.currentTimeMillis();
+        mTimeLastMovement = System.currentTimeMillis();
         Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (System.currentTimeMillis() >= timeLastMovement + WAIT_TIME) {
+                if (System.currentTimeMillis() >= mTimeLastMovement + WAIT_TIME) {
                     takePicture();
                 }
             }
         }, WAIT_TIME);
     }
 
-    // TODO: can do a slow fade
-    private void enableOnClicks(boolean enable) {
-        for (int i = 0; i < buttonsArea.getChildCount(); i++) {
-            buttonsArea.getChildAt(i).setAlpha(enable ? 1f : 0.3f);
-            buttonsArea.getChildAt(i).setClickable(enable);
-        }
+    private void enableActions(boolean enable) {
+        mAllowActions = enable;
+        enableButtons(enable);
 
-        for(int i = 0; i < tabStrip.getChildCount(); i++) {
-            tabStrip.getChildAt(i).setAlpha(enable ? 1f : 0.3f);
-            tabStrip.getChildAt(i).setClickable(enable);
+        for(int i = 0; i < mTabStrip.getChildCount(); i++) {
+            mTabStrip.getChildAt(i).setAlpha(enable ? 1f : 0.3f);
+            mTabStrip.getChildAt(i).setClickable(enable);
+        }
+    }
+
+    private void enableButtons(boolean enable) {
+        for (int i = 0; i < mButtonsArea.getChildCount(); i++) {
+            mButtonsArea.getChildAt(i).setAlpha(enable ? 1f : 0.3f);
+            mButtonsArea.getChildAt(i).setClickable(enable);
         }
     }
 
     private void displayImage(byte[] byteArray, int offset, int size) {
+        showLoading(false);
         ByteArrayInputStream in = new ByteArrayInputStream(byteArray, offset, size);
         Bitmap bitmap = BitmapFactory.decodeStream(in);
-        picture.setImageBitmap(Bitmap.createScaledBitmap(bitmap, picture.getWidth(), picture.getHeight(), false));
+        mPictureView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, mPictureView.getWidth(), mPictureView.getHeight(), false));
+    }
+
+    private void showLoading(boolean on) {
+        mPictureLoading.setVisibility(on ? View.VISIBLE : View.GONE);
+    }
+
+    private void showNotConnected(boolean on) {
+        mTextNotConnected.setVisibility(on ? View.VISIBLE : View.GONE);
     }
 }
 
