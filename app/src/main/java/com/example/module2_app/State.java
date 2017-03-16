@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 
 import java.util.ArrayList;
+import java.util.Timer;
 
 public class State {
 
@@ -17,6 +18,7 @@ public class State {
     public static ArrayList<BluetoothDevice> mPairedDeviceArray;
     public static BluetoothArrayAdaptor mPairedAdapter;
 
+    public static Timer heartBeatTimmer;
     public static CommunicationThread mmCommunicationThread;
 
     private static BluetoothSocket btSocket;

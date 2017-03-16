@@ -21,8 +21,11 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.ByteArrayInputStream;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
     private static final long WAIT_TIME = 2000;
@@ -54,11 +57,12 @@ public class MainActivity extends AppCompatActivity {
                         }
                         else if (Util.uByte(receivevMessage[4]) == MessageConstants.RESPONSE_NIOS_HANDSHAKE) {
                             toastMessage = "Handshake!";
+                            State.heartBeatTimmer.cancel();
                         }
                         else {
                             toastMessage = "Command: " + receivevMessage[2] + " failed with code: " + receivevMessage[3];
                         }
-                        // toast.out(toastMessage);
+                        toast.out(toastMessage);
                     }
                     else if (Util.uByte(receivevMessage[0]) == MessageConstants.ID_MESG_IMAGE) {
                         displayImage(receivevMessage, 3, (receivevMessage[1] << 8) + Util.uByte(receivevMessage[2]));
@@ -124,10 +128,31 @@ public class MainActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
         Log.i("info", "Main onResume()");
+
+
         if (State.btConnected()) {
             if (State.mmCommunicationThread == null) {
                 State.mmCommunicationThread = new CommunicationThread(State.getBtSocket(), mHandler);
                 State.mmCommunicationThread.start();
+
+                if (State.heartBeatTimmer == null) {
+                    State.heartBeatTimmer = new Timer();
+                }
+
+                // cancel heartbeat timer and restart it
+                final Handler handler = new Handler();
+                TimerTask handshake = new TimerTask() {
+                    @Override
+                    public void run() {
+                        handler.post(new Runnable() {
+                            public void run() {
+                                Log.i("info", "timer handshake");
+                                State.mmCommunicationThread.commandHandshake();
+                            }
+                        });
+                    }
+                };
+                State.heartBeatTimmer.schedule(handshake, 0, 1000);
             }
             showNotConnected(false);
         }
@@ -135,27 +160,6 @@ public class MainActivity extends AppCompatActivity {
             enableActions(false);
             showNotConnected(true);
         }
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        Log.i("info", "Main onStop()");
-        Log.i("info", "isFinishing() - " + String.valueOf(isFinishing()));
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        Log.i("info", "Main onPause()");
-        Log.i("info", "isFinishing() - " + String.valueOf(isFinishing()));
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.i("info", "Main onDestroy()");
-        Log.i("info", "isFinishing() - " + String.valueOf(isFinishing()));
     }
 
     @Override

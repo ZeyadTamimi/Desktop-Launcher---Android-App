@@ -43,8 +43,6 @@ class CommunicationThread extends Thread {
 
         mmInStream = tmpIn;
         mmOutStream = tmpOut;
-        // Send the handshake
-        commandHandshake();
     }
 
     public void run() {
