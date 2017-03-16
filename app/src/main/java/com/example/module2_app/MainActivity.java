@@ -116,8 +116,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        if (BluetoothConnectActivity.btSocket != null && BluetoothConnectActivity.btSocket.isConnected()) {
-            mmCommunicationThread = new CommunicationThread(BluetoothConnectActivity.btSocket, mHandler);
+        if (State.getBtSocket() != null && State.getBtSocket().isConnected()) {
+            mmCommunicationThread = new CommunicationThread(State.getBtSocket(), mHandler);
             mmCommunicationThread.start();
             enableActions(true);
             showNotConnected(false);

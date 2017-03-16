@@ -15,6 +15,12 @@
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme" />
 
+    <TextView
+        android:id="@+id/text_connected_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Not Connected" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
