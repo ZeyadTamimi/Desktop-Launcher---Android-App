@@ -111,11 +111,11 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
 
     public void setConnected(int pos) {
         if (State.btConnected()) {
-            mTextConnected.setText("Connected");
+            mTextConnected.setText("CONNECTED TO " + mPairedDeviceArray.get(pos).getName());
             mPairedAdapter.setConnected(pos);
         }
         else {
-            mTextConnected.setText("Not Connected");
+            mTextConnected.setText("-- NOT CONNEC   TED --");
             mPairedAdapter.setDisconnected(pos);
         }
         mPairedAdapter.notifyDataSetChanged();

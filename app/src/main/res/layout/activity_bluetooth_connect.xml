@@ -18,8 +18,17 @@
     <TextView
         android:id="@+id/text_connected_status"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Not Connected" />
+        android:layout_height="45dp"
+        android:gravity="center_vertical|center_horizontal"
+        android:text="-- NOT CONNECTED --"
+        android:textColor="#FFbb0000"
+        android:textSize="14sp" />
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#bdbdbd" />
 
     <LinearLayout
         android:layout_width="match_parent"
