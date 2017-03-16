@@ -47,26 +47,28 @@ class CommunicationThread extends Thread {
 
     public void run() {
         mmBuffer = new byte[65000];
-        int numBytes; // bytes returned from read()
+        int numBytes;
         int messageSize;
 
         // Keep listening to the InputStream until an exception occurs.
         while (true) {
             try {
                 numBytes = 0;
-                // Try to read the first two bytes
-                while (numBytes < MessageConstants.MESG_FIELD_HEADER_SIZE)
-                    numBytes += mmInStream.read(mmBuffer, numBytes, MessageConstants.MESG_FIELD_HEADER_SIZE - numBytes);
+                messageSize = 0;
+
+
+                // Try to read the message header
+                while (numBytes < MessageConstants.SIZE_FIELD_HEADER)
+                    numBytes += mmInStream.read(mmBuffer, numBytes, MessageConstants.SIZE_FIELD_HEADER - numBytes);
 
                 // Calculate the next number of bytes to read
-                messageSize = (mmBuffer[1] << 8) + Util.uByte(mmBuffer[2]);
+                messageSize = + (Util.uByte(mmBuffer[1]) << 8) + Util.uByte(mmBuffer[2]);
+
                 // Read the rest of the message
-                while (numBytes < messageSize + MessageConstants.MESG_FIELD_HEADER_SIZE)
-                    numBytes += mmInStream.read(mmBuffer, numBytes, messageSize + MessageConstants.MESG_FIELD_HEADER_SIZE - numBytes);
+                while (numBytes < messageSize + MessageConstants.SIZE_FIELD_HEADER)
+                    numBytes += mmInStream.read(mmBuffer, numBytes, messageSize + MessageConstants.SIZE_FIELD_HEADER - numBytes);
                 // Send the obtained bytes to the UI activity.
-                Message readMsg = mHandler.obtainMessage(
-                        MessageConstants.MESSAGE_READ, messageSize, -1,
-                        mmBuffer);
+                Message readMsg = mHandler.obtainMessage(MessageConstants.MESSAGE_READ, messageSize, -1, mmBuffer);
                 readMsg.sendToTarget();
             } catch (IOException e) {
                 Log.d(TAG, "Input stream was disconnected", e);
@@ -78,11 +80,11 @@ class CommunicationThread extends Thread {
     // Call this from the main activity to send data to the remote device.
     public void write(byte[] bytes) {
         try {
+            // Write the message to the bluetooth socket.
             mmOutStream.write(bytes);
 
             // Share the sent message with the UI activity.
-            Message writtenMsg = mHandler.obtainMessage(
-                    MessageConstants.MESSAGE_WRITE, -1, -1, mmBuffer);
+            Message writtenMsg = mHandler.obtainMessage(MessageConstants.MESSAGE_WRITE, -1, -1, mmBuffer);
             writtenMsg.sendToTarget();
         } catch (IOException e) {
             Log.e(TAG, "Error occurred when sending data", e);
@@ -99,12 +101,12 @@ class CommunicationThread extends Thread {
     }
 
     public void commandMoveTime(int direction, long time) {
-        byte[] moveCommand = new byte[MessageConstants.MESG_FIELD_HEADER_SIZE +
-                MessageConstants.MESG_MOVE_TIME_SIZE];
+        byte[] moveCommand = new byte[MessageConstants.SIZE_FIELD_HEADER +
+                MessageConstants.SIZE_COMMAND_MOVE_TIME];
 
-        moveCommand[0] = (byte) MessageConstants.MOVE_COMMAND_TIME_ID;
-        moveCommand[1] = (byte) (MessageConstants.MESG_MOVE_TIME_SIZE >> 8);
-        moveCommand[2] = (byte) (MessageConstants.MESG_MOVE_TIME_SIZE & 0xFF);
+        moveCommand[0] = (byte) MessageConstants.ID_COMMAND_MOVE_TIME;
+        moveCommand[1] = (byte) (MessageConstants.SIZE_COMMAND_MOVE_TIME >> 8);
+        moveCommand[2] = (byte) (MessageConstants.SIZE_COMMAND_MOVE_TIME & 0xFF);
         moveCommand[3] = (byte) (direction & 0xFF);
         moveCommand[4] = (byte) ((time >> 24) & 0xFF);
         moveCommand[5] = (byte) ((time >> 16) & 0xFF);
@@ -113,13 +115,22 @@ class CommunicationThread extends Thread {
         write(moveCommand);
     }
 
+    public void commandFire() {
+        byte[] fireCommand = new byte[MessageConstants.SIZE_FIELD_HEADER];
+
+        fireCommand[0] = (byte) MessageConstants.ID_COMMAND_FIRE;
+        fireCommand[1] = (byte) (0);
+        fireCommand[2] = (byte) (0);
+        write(fireCommand);
+    }
+
     public void requestMessage(int messageId) {
-        byte[] message = new byte[MessageConstants.MESG_FIELD_HEADER_SIZE +
-                MessageConstants.MESG_REQUEST_SIZE];
-        message[0] = (byte) MessageConstants.REQUEST_ID;
-        message[1] = (byte) (MessageConstants.MESG_REQUEST_SIZE >> 8);
-        message[2] = (byte) (MessageConstants.MESG_REQUEST_SIZE & 0xFF);
-        message[MessageConstants.MESG_FIELD_HEADER_SIZE] = (byte) messageId;
+        byte[] message = new byte[MessageConstants.SIZE_FIELD_HEADER +
+                MessageConstants.SIZE_REQUEST];
+        message[0] = (byte) MessageConstants.ID_REQUEST;
+        message[1] = (byte) (MessageConstants.SIZE_REQUEST >> 8);
+        message[2] = (byte) (MessageConstants.SIZE_REQUEST & 0xFF);
+        message[MessageConstants.SIZE_FIELD_HEADER] = (byte) messageId;
         write(message);
     }
 

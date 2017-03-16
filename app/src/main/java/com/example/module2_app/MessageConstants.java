@@ -4,29 +4,39 @@ package com.example.module2_app;
 // Defines several constants used when transmitting messages between the
 // service and the UI.
 public interface MessageConstants {
-
+    // Handler Communication
     public static final int MESSAGE_READ = 0;
     public static final int MESSAGE_WRITE = 1;
     public static final int MESSAGE_TOAST = 2;
 
 
     // Message IDs
-    public static final int MOVE_COMMAND_TIME_ID = 0x01;
-    public static final int RESPONSE_ID = 0xF1;
-    public static final int REQUEST_ID = 0xF3;
-    public static final int IMAGE_ID = 0xF2;
+    public static final int ID_COMMAND_MOVE_TIME = 0x01;
+    public static final int ID_COMMAND_MOVE_ANGLE = 0x02;
+    public static final int ID_COMMAND_CHANGE_SPEED = 0x03;
+    public static final int ID_COMMAND_FIRE = 0x04;
+    public static final int ID_RESPONSE = 0xAA;
+    public static final int ID_REQUEST = 0xF1;
+    public static final int ID_MESG_IMAGE = 0xF2;
 
 
     // Field Sizes
-    public static final int MESG_FIELD_ID_SIZE = 1;
-    public static final int MESG_FIELD_LENGTH_SIZE = 2;
-    public static final int MESG_FIELD_HEADER_SIZE = MESG_FIELD_ID_SIZE + MESG_FIELD_LENGTH_SIZE;
-    public static final int MESG_MOVE_FIELD_DIR_SIZE = 1;
+    public static final int SIZE_FIELD_ID = 1;
+    public static final int SIZE_FIELD_LENGTH = 2;
+    public static final int SIZE_FIELD_HEADER = SIZE_FIELD_ID + SIZE_FIELD_LENGTH;
+    public static final int SIZE_FIELD_COMMAND_MOVE_DIR = 1;
+    public static final int SIZE_FIELD_COMMAND_MOVE_TIME = 1;
 
+
+    // Response Codes
+    public static final int RESPONSE_NO_ERROR = 0x00;
+    public static final int RESPONSE_INVALID_PARAM = 0x01;
+    public static final int RESPONSE_INVALID_COMMAND = 0x02;
+    public static final int RESPONSE_INVALID_REQUEST = 0x03;
 
     // Message Sizes
-    public static final int MESG_MOVE_TIME_SIZE = 5;
-    public static final int MESG_REQUEST_SIZE = 1;
+    public static final int SIZE_COMMAND_MOVE_TIME = 5;
+    public static final int SIZE_REQUEST = 1;
 
     // Move Directions
     public static final int MOVE_UP = 2;
@@ -34,7 +44,5 @@ public interface MessageConstants {
     public static final int MOVE_LEFT = 1;
     public static final int MOVE_RIGHT = 0;
 
-    // Response Codes
-    public static final int RESPONSE_NO_ERROR = 0x01;
-    public static final int RESPONSE_INVALID_PARAM = 0xF1;
+
 }

@@ -46,14 +46,14 @@ public class MainActivity extends AppCompatActivity {
                     // TODO: Handle all types of messages
                     // TODO: Size check
                     byte[] receivevMessage = (byte[]) msg.obj;
-                    if (Util.uByte(receivevMessage[0])== MessageConstants.RESPONSE_ID) {
-                        if (receivevMessage[3] == MessageConstants.RESPONSE_NO_ERROR) {
+                    if (Util.uByte(receivevMessage[0])== MessageConstants.ID_RESPONSE) {
+                        if (Util.uByte(receivevMessage[4]) == MessageConstants.RESPONSE_NO_ERROR) {
                             toast.out("Command Successfull!");
                         }
                         else
                             toast.out("Command: " + receivevMessage[2] +" failed with code: " + receivevMessage[3]);
                     }
-                    else if (Util.uByte(receivevMessage[0]) == MessageConstants.IMAGE_ID) {
+                    else if (Util.uByte(receivevMessage[0]) == MessageConstants.ID_MESG_IMAGE) {
                         displayImage(receivevMessage, 3, (receivevMessage[1] << 8) + Util.uByte(receivevMessage[2]));
                     }
                     enableButtons(true);
@@ -195,12 +195,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void fire() {
+
         toastMessage = "Firing";
+        if (mmCommunicationThread != null) {
+            mmCommunicationThread.commandFire();
+        }
     }
 
     public void takePicture() {
         toastMessage = "Taking Picture";
-        mmCommunicationThread.requestMessage(MessageConstants.IMAGE_ID);
+        mmCommunicationThread.requestMessage(MessageConstants.ID_MESG_IMAGE);
     }
 
     private void takePictureDelayed() {
