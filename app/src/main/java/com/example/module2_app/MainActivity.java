@@ -48,7 +48,10 @@ public class MainActivity extends AppCompatActivity {
                     byte[] receivevMessage = (byte[]) msg.obj;
                     if (Util.uByte(receivevMessage[0]) == MessageConstants.ID_RESPONSE) {
                         if (Util.uByte(receivevMessage[4]) == MessageConstants.RESPONSE_NO_ERROR) {
-                            toast.out("Command Successfull!");
+                            toast.out("Command Successful!");
+                        }
+                        else if (Util.uByte(receivevMessage[4]) == MessageConstants.RESPONSE_NIOS_HANDSHAKE) {
+                            toast.out("Handshake!");
                         }
                         else {
                             toast.out("Command: " + receivevMessage[2] + " failed with code: " + receivevMessage[3]);
@@ -57,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
                     else if (Util.uByte(receivevMessage[0]) == MessageConstants.ID_MESG_IMAGE) {
                         displayImage(receivevMessage, 3, (receivevMessage[1] << 8) + Util.uByte(receivevMessage[2]));
                     }
-                    enableButtons(true);
+                    enableActions(true);
                 }
             }
         }
@@ -116,10 +119,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        if (State.getBtSocket() != null && State.getBtSocket().isConnected()) {
+        if (State.btConnected()) {
             mmCommunicationThread = new CommunicationThread(State.getBtSocket(), mHandler);
             mmCommunicationThread.start();
-            enableActions(true);
             showNotConnected(false);
         }
         else {
@@ -237,10 +239,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void displayImage(byte[] byteArray, int offset, int size) {
         showLoading(false);
-        Util.saveImage(byteArray, offset, size);
         ByteArrayInputStream in = new ByteArrayInputStream(byteArray, offset, size);
         Bitmap bitmap = BitmapFactory.decodeStream(in);
         mPictureView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, mPictureView.getWidth(), mPictureView.getHeight(), false));
+        if (State.backup_switch_state)
+            Util.saveImage(byteArray, offset, size);
     }
 
     private void showLoading(boolean on) {

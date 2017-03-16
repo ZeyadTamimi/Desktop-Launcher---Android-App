@@ -43,6 +43,8 @@ class CommunicationThread extends Thread {
 
         mmInStream = tmpIn;
         mmOutStream = tmpOut;
+        // Send the handshake
+        commandHandshake();
     }
 
     public void run() {
@@ -122,6 +124,14 @@ class CommunicationThread extends Thread {
         fireCommand[1] = (byte) (0);
         fireCommand[2] = (byte) (0);
         write(fireCommand);
+    }
+
+    public void commandHandshake() {
+        byte[] handshakeCommand = new byte[MessageConstants.SIZE_FIELD_HEADER];
+        handshakeCommand[0] = (byte) MessageConstants.ID_COMMAND_ANDROID_HANDSHAKE;
+        handshakeCommand[1] = (byte) (0);
+        handshakeCommand[2] = (byte) (0);
+        write(handshakeCommand);
     }
 
     public void requestMessage(int messageId) {

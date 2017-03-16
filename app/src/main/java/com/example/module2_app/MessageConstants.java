@@ -14,6 +14,7 @@ public interface MessageConstants {
     public static final int ID_COMMAND_MOVE_TIME = 0x01;
     public static final int ID_COMMAND_MOVE_ANGLE = 0x02;
     public static final int ID_COMMAND_CHANGE_SPEED = 0x03;
+    public static final int ID_COMMAND_ANDROID_HANDSHAKE = 0xFF;
     public static final int ID_COMMAND_FIRE = 0x04;
     public static final int ID_RESPONSE = 0xAA;
     public static final int ID_REQUEST = 0xF1;
@@ -33,6 +34,7 @@ public interface MessageConstants {
     public static final int RESPONSE_INVALID_PARAM = 0x01;
     public static final int RESPONSE_INVALID_COMMAND = 0x02;
     public static final int RESPONSE_INVALID_REQUEST = 0x03;
+    public static final int RESPONSE_NIOS_HANDSHAKE = 0x04;
 
     // Message Sizes
     public static final int SIZE_COMMAND_MOVE_TIME = 5;

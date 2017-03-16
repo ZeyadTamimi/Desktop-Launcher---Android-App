@@ -34,6 +34,8 @@ public class Util {
             File picDir = Environment.getExternalStoragePublicDirectory("Pictures/");
             File dtrPicDir = new File(picDir, "DTR Photos");
             dtrPicDir.mkdir();
+            // Check next available number to store file as
+            File[] listOfFiles = dtrPicDir.listFiles();
             // Create the new file
             File photoJPEG = new File(dtrPicDir, "dtr_" + State.lastPhotoNumber +".jpg");
             photoJPEG.createNewFile();
