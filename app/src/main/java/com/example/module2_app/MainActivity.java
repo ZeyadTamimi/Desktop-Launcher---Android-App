@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -26,7 +27,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = "MY_APP_DEBUG_TAG";
     private static final long WAIT_TIME = 2000;
 
     public static AppToast toast;
@@ -35,9 +35,10 @@ public class MainActivity extends AppCompatActivity {
     private String toastMessage = "MESSAGE";
 
     private RelativeLayout buttonsArea;
+    private TabLayout modesArea;
     private ImageView picture;
-
     private CommunicationThread mmCommunicationThread;
+
     public Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -76,8 +77,8 @@ public class MainActivity extends AppCompatActivity {
         toast = new AppToast(getApplicationContext());
 
         // tabs: our modes
-        TabLayout myModes = (TabLayout) findViewById(R.id.tab_layout_modes);
-        myModes.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+        modesArea = (TabLayout) findViewById(R.id.tab_layout_modes);
+        modesArea.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 toastMessage = tab.getText().toString();
@@ -143,6 +144,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void buttonPress(View view) {
+        enableButtons(false);
         switch(view.getId()) {
             case R.id.button_up:
                 rotateUp();
@@ -165,45 +167,33 @@ public class MainActivity extends AppCompatActivity {
             default:
                 break;
         }
-        enableButtons(false);
         toast.out(toastMessage);
     }
 
     private void rotateUp() {
-        toastMessage = "Rotating Up";
-        if (mmCommunicationThread != null) {
-            mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_UP, 100);
-        }
+        toastMessage = "Up";
+        mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_UP, 100);
     }
     private void rotateDown() {
-        toastMessage = "Rotating Down";
-        if (mmCommunicationThread != null) {
-            mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_DOWN, 100);
-        }
+        toastMessage = "Down";
+        mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_DOWN, 100);
     }
     private void rotateRight() {
-        toastMessage = "Rotating Right";
-        if (mmCommunicationThread != null) {
-            mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_RIGHT, 500000);
-        }
+        toastMessage = "Right";
+        mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_RIGHT, 500000);
     }
     private void rotateLeft() {
-        toastMessage = "Rotating Left";
-        if (mmCommunicationThread != null) {
-            mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_LEFT, 500000);
-        }
+        toastMessage = "Left";
+        mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_LEFT, 500000);
     }
 
     private void fire() {
-
-        toastMessage = "Firing";
-        if (mmCommunicationThread != null) {
-            mmCommunicationThread.commandFire();
-        }
+        toastMessage = "Fire";
+        mmCommunicationThread.commandFire();
     }
 
     public void takePicture() {
-        toastMessage = "Taking Picture";
+        toastMessage = "Take Picture";
         mmCommunicationThread.requestMessage(MessageConstants.ID_MESG_IMAGE);
     }
 
@@ -229,11 +219,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // TODO: what format am I getting the image in
     private void displayImage(byte[] byteArray, int offset, int size) {
         ByteArrayInputStream in = new ByteArrayInputStream(byteArray, offset, size);
         Bitmap bitmap = BitmapFactory.decodeStream(in);
-        // Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.mipmap.space);
         picture.setImageBitmap(Bitmap.createScaledBitmap(bitmap, picture.getWidth(), picture.getHeight(), false));
     }
 }

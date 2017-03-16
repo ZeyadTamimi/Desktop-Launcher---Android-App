@@ -80,16 +80,7 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
             refresh();
         }
     }
-/*
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.bluetooth_menu, menu);
 
-        return super.onCreateOptionsMenu(menu);
-    }
-*/
     public void buttonPress(View view) {
         switch(view.getId()) {
             case R.id.button_refresh:
