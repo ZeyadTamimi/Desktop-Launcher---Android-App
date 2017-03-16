@@ -237,6 +237,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void displayImage(byte[] byteArray, int offset, int size) {
         showLoading(false);
+        Util.saveImage(byteArray, offset, size);
         ByteArrayInputStream in = new ByteArrayInputStream(byteArray, offset, size);
         Bitmap bitmap = BitmapFactory.decodeStream(in);
         mPictureView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, mPictureView.getWidth(), mPictureView.getHeight(), false));

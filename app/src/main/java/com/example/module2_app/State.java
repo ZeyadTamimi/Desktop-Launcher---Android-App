@@ -7,6 +7,7 @@ public class State {
 
     public static boolean backup_switch_state = false;
     public static int turret_speed_bar_value = 2;
+    public static long lastPhotoNumber = 0;
 
     private static BluetoothSocket btSocket;
 
