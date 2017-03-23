@@ -30,6 +30,7 @@ public interface MessageConstants {
     public static final int SIZE_FIELD_COMMAND_MOVE_TIME = 1;
 
 
+
     // Response Codes
     public static final int RESPONSE_NO_ERROR = 0x00;
     public static final int RESPONSE_INVALID_PARAM = 0x01;
@@ -39,6 +40,7 @@ public interface MessageConstants {
 
     // Message Sizes
     public static final int SIZE_COMMAND_MOVE_TIME = 5;
+    public static final int SIZE_COMMAND_MOVE_ANGLE = 2;
     public static final int SIZE_REQUEST = 1;
 
     // Move Directions

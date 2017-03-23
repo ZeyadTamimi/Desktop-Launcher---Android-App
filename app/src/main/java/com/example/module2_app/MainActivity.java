@@ -16,6 +16,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -42,6 +43,10 @@ public class MainActivity extends AppCompatActivity {
     private ImageView mPictureView;
     private ProgressBar mPictureLoading;
     private TextView mTextNotConnected;
+
+    private final int X_MAX_ANGLE = 45;
+    private final int Y_MAX_ANGLE = 30;
+
 
     public Handler mHandler = new Handler() {
         @Override
@@ -113,6 +118,42 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+
+
+        mPictureView.setOnTouchListener(new View.OnTouchListener(){
+            @Override
+            public boolean onTouch(View view, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN: {
+                        //TODO clean up
+                        int x = (int) event.getX();
+                        int y = (int) event.getY();
+                        int width = mPictureView.getWidth();
+                        int height = mPictureView.getHeight();
+                        int x_relative = x - width/2;
+                        int y_relative = y - height/2;
+                        int x_factor = width/2/X_MAX_ANGLE;
+                        int y_factor = height/2/Y_MAX_ANGLE;
+                        int x_angle = x_relative/x_factor;
+                        int y_angle = y_relative/y_factor;
+                        rotateTouch(x_angle, y_angle);
+                        /*
+                        Log.i("view size","width= "+width);
+                        Log.i("view size","height= "+height);
+                        Log.i("coordinate","x= "+x);
+                        Log.i("coordinate","y= "+y);
+                        Log.i("relative","x= "+x_relative);
+                        Log.i("relative","y= "+y_relative);
+                        Log.i("angle","x= "+x_angle);
+                        Log.i("angle","y= "+y_angle);
+                        */
+                        break;
+                    }
+                }
+                return true;
+            }
+        });
     }
 
     @Override
@@ -123,6 +164,7 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onCreateOptionsMenu(menu);
     }
+
 
     @Override
     public void onResume() {
@@ -212,6 +254,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    private void rotateTouch(int x_angle, int y_angle){
+        if(mAllowActions) {
+            toastMessage = "x angle= "+ x_angle + " " + "y angle = " + y_angle;
+            //toast.out(toastMessage);
+            if (x_angle <= 127 && x_angle >= -128 && y_angle <= 127 && y_angle >= -128) {
+                enableActions(false);
+                State.mmCommunicationThread.commandMoveAngle(x_angle, y_angle);
+                takePicture();
+            }
+        }
+    }
 
     private void rotateUp() {
         toastMessage = "Up";
