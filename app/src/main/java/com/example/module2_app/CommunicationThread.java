@@ -115,6 +115,22 @@ class CommunicationThread extends Thread {
         write(moveCommand);
     }
 
+    public void commandMoveAngle(int x_angle, int y_angle){
+        byte[] moveCommand = new byte[MessageConstants.SIZE_FIELD_HEADER +
+                MessageConstants.SIZE_COMMAND_MOVE_ANGLE];
+
+        moveCommand[0] = (byte) MessageConstants.ID_COMMAND_MOVE_ANGLE;
+        moveCommand[1] = (byte) (MessageConstants.SIZE_COMMAND_MOVE_ANGLE >> 8);
+        moveCommand[2] = (byte) (MessageConstants.SIZE_COMMAND_MOVE_ANGLE & 0xFF);
+        moveCommand[3] = (byte) (x_angle & 0xFF);
+        moveCommand[4] = (byte) (y_angle & 0xFF);
+
+        String message = moveCommand.toString();
+        Log.i("message",message);
+
+        write(moveCommand);
+
+    }
     public void commandFire() {
         byte[] fireCommand = new byte[MessageConstants.SIZE_FIELD_HEADER];
 
