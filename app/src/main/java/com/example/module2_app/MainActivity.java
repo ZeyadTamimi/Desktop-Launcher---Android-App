@@ -3,6 +3,9 @@ package com.example.module2_app;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
@@ -16,27 +19,41 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.ByteArrayInputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MainActivity extends AppCompatActivity {
     private static final long WAIT_TIME = 2000;
+    private static final int X_MAX_ANGLE = 45;
+    private static final int Y_MAX_ANGLE = 30;
 
     public static AppToast toast;
 
-    private long mTimeLastMovement;
-    private boolean mAllowActions;
     private String toastMessage = "MESSAGE";
 
+    private AsyncTask<SendCommandTask.CommandType, Void, Void> mSendCommandTask;
+    public static AtomicBoolean mCanSendCommands;
+    private boolean mHoldingButton;
+    // NOTE: this is modified through enableActions()
+    //       read this value to see if we can click buttons / switch modes
+    private boolean mAllowActions;
+
+    // movement detection based on phone orientation
+    private SensorManager mSensorManager;
+    private Sensor mAccelerometer, mMagnetometer;
+    private DirectionDetector mDirectionDetector;
+
+    // ui elements
     private RelativeLayout mButtonsArea;
     private TabLayout mTabLayout;
     private LinearLayout mTabStrip;
@@ -44,11 +61,8 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar mPictureLoading;
     private TextView mTextNotConnected;
 
-    private final int X_MAX_ANGLE = 45;
-    private final int Y_MAX_ANGLE = 30;
-
-
-    public Handler mHandler = new Handler() {
+    // communication handler
+    private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
@@ -72,21 +86,62 @@ public class MainActivity extends AppCompatActivity {
                     else if (Util.uByte(receivevMessage[0]) == MessageConstants.ID_MESG_IMAGE) {
                         displayImage(receivevMessage, 3, (receivevMessage[1] << 8) + Util.uByte(receivevMessage[2]));
                     }
+                    // TODO: add this to enable on hold button clicks, then delete the next enableActions
+                    /*
+                    if (!mHoldingButton) {
+                        enableActions(true);
+                    }
+                    */
                     enableActions(true);
+                    mCanSendCommands.set(true);
                 }
             }
         }
     };
 
+    private FloatingActionButton fireBtn;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.i("info", "Main onCreate()");
         setContentView(R.layout.activity_main);
-
         Toolbar myToolbar = (Toolbar) findViewById(R.id.activity_main_toolbar);
         setSupportActionBar(myToolbar);
 
+        // on hold buttons
+        mCanSendCommands = new AtomicBoolean(false);
+        mHoldingButton = false;
+        // TODO: add this to enable on hold button clicks
+        // setUpButtonsHandler();
+
+        // sensor initialization
+        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+
+        mDirectionDetector = new DirectionDetector(new DirectionDetector.OnDirectionChangeListener() {
+            @Override
+            public void onUp() {
+                Log.i("Direction", "up");
+            }
+
+            @Override
+            public void onDown() {
+                Log.i("Direction", "down");
+            }
+
+            @Override
+            public void onLeft() {
+                Log.i("Direction", "left");
+            }
+
+            @Override
+            public void onRight() {
+                Log.i("Direction", "right");
+            }
+        });
+
+        // initialize UI element references
         mButtonsArea = (RelativeLayout) findViewById(R.id.section_buttons);
         mPictureView = (ImageView) findViewById(R.id.iv_picture);
         mPictureLoading = (ProgressBar) findViewById(R.id.icon_loading_picture);
@@ -94,7 +149,6 @@ public class MainActivity extends AppCompatActivity {
 
         toast = new AppToast(getApplicationContext());
 
-        // tabs: our modes
         mTabLayout = (TabLayout) findViewById(R.id.tab_layout_modes);
         mTabStrip = ((LinearLayout) mTabLayout.getChildAt(0));
         mTabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -169,9 +223,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        Log.i("info", "Main onResume()");
+        // sesnsor listeners
+        mSensorManager.registerListener(mDirectionDetector, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(mDirectionDetector, mMagnetometer, SensorManager.SENSOR_DELAY_NORMAL);
 
-
+        // communication thread
         if (State.btConnected()) {
             if (State.mmCommunicationThread == null) {
                 State.mmCommunicationThread = new CommunicationThread(State.getBtSocket(), mHandler);
@@ -205,10 +261,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        mSensorManager.unregisterListener(mDirectionDetector);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection
         switch (item.getItemId()) {
-
             case R.id.action_bluetooth:
                 Intent intent1 = new Intent(this, BluetoothConnectActivity.class);
                 startActivity(intent1);
@@ -226,6 +287,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // TODO: remove this onClick callback to enable on hold button clicks
     public void buttonPress(View view) {
         enableActions(false);
         switch(view.getId()) {
@@ -250,14 +312,14 @@ public class MainActivity extends AppCompatActivity {
             default:
                 break;
         }
-        // toast.out(toastMessage);
+        toast.out(toastMessage);
     }
 
 
     private void rotateTouch(int x_angle, int y_angle){
-        if(mAllowActions) {
+        if (mAllowActions) {
             toastMessage = "x angle= "+ x_angle + " " + "y angle = " + y_angle;
-            //toast.out(toastMessage);
+            // toast.out(toastMessage);
             if (x_angle <= 127 && x_angle >= -128 && y_angle <= 127 && y_angle >= -128) {
                 enableActions(false);
                 State.mmCommunicationThread.commandMoveAngle(x_angle, y_angle);
@@ -294,19 +356,6 @@ public class MainActivity extends AppCompatActivity {
         State.mmCommunicationThread.requestMessage(MessageConstants.ID_MESG_IMAGE);
     }
 
-    private void takePictureDelayed() {
-        mTimeLastMovement = System.currentTimeMillis();
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (System.currentTimeMillis() >= mTimeLastMovement + WAIT_TIME) {
-                    takePicture();
-                }
-            }
-        }, WAIT_TIME);
-    }
-
     private void enableActions(boolean enable) {
         mAllowActions = enable;
         enableButtons(enable);
@@ -322,6 +371,60 @@ public class MainActivity extends AppCompatActivity {
             mButtonsArea.getChildAt(i).setAlpha(enable ? 1f : 0.3f);
             mButtonsArea.getChildAt(i).setClickable(enable);
         }
+    }
+
+    // TODO: maybe a better way to do this
+    private void setUpButtonsHandler() {
+        Map<Integer, SendCommandTask.CommandType> cmdToBtn = new HashMap<>(mButtonsArea.getChildCount());
+        for (int i = 0; i < mButtonsArea.getChildCount(); i++) {
+            switch (mButtonsArea.getChildAt(i).getId()) {
+                case R.id.button_up:
+                    cmdToBtn.put(i, SendCommandTask.CommandType.UP);
+                    break;
+                case R.id.button_down:
+                    cmdToBtn.put(i, SendCommandTask.CommandType.DOWN);
+                    break;
+                case R.id.button_right:
+                    cmdToBtn.put(i, SendCommandTask.CommandType.RIGHT);
+                    break;
+                case R.id.button_left:
+                    cmdToBtn.put(i, SendCommandTask.CommandType.LEFT);
+                    break;
+                case R.id.button_fire:
+                    cmdToBtn.put(i, SendCommandTask.CommandType.FIRE);
+                    break;
+            }
+        }
+
+        for (Integer i : cmdToBtn.keySet()) {
+            final SendCommandTask.CommandType cmd = cmdToBtn.get(i);
+            mButtonsArea.getChildAt(i).setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    switch (event.getAction()) {
+                        case MotionEvent.ACTION_DOWN:
+                            if (mAllowActions) {
+                                enableActions(false);
+                                mHoldingButton = true;
+                                toast.out("fire");
+                                mSendCommandTask = new SendCommandTask();
+                                mSendCommandTask.execute(cmd);
+                            }
+                            break;
+                        case MotionEvent.ACTION_CANCEL:
+                        case MotionEvent.ACTION_UP:
+                            if (mHoldingButton) {
+                                toast.out("release");
+                                mHoldingButton = false;
+                                mSendCommandTask.cancel(true);
+                            }
+                            break;
+                    }
+                    return true;
+                }
+            });
+        }
+
     }
 
     private void displayImage(byte[] byteArray, int offset, int size) {
