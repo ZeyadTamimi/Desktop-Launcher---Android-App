@@ -123,21 +123,33 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onUp() {
                 Log.i("Direction", "up");
+                if (mCanSendCommands.getAndSet(false)) {
+                    rotateUp();
+                }
             }
 
             @Override
             public void onDown() {
                 Log.i("Direction", "down");
+                if (mCanSendCommands.getAndSet(false)) {
+                    rotateDown();
+                }
             }
 
             @Override
             public void onLeft() {
                 Log.i("Direction", "left");
+                if (mCanSendCommands.getAndSet(false)) {
+                    rotateLeft();
+                }
             }
 
             @Override
             public void onRight() {
                 Log.i("Direction", "right");
+                if (mCanSendCommands.getAndSet(false)) {
+                    rotateRight();
+                }
             }
         });
 
