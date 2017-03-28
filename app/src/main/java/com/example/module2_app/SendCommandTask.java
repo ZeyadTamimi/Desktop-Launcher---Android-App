@@ -2,6 +2,7 @@ package com.example.module2_app;
 
 import android.os.AsyncTask;
 
+// TODO: Remove FIRE command, keeping it here for testing purposes
 public class SendCommandTask extends AsyncTask<SendCommandTask.CommandType, Void, Void> {
 
     enum CommandType {

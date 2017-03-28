@@ -6,12 +6,11 @@ import android.graphics.BitmapFactory;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -44,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
     private AsyncTask<SendCommandTask.CommandType, Void, Void> mSendCommandTask;
     public static AtomicBoolean mCanSendCommands;
     private boolean mHoldingButton;
+    private boolean mAccelMovement;
     // NOTE: this is modified through enableActions()
     //       read this value to see if we can click buttons / switch modes
     private boolean mAllowActions;
@@ -77,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
                         else if (Util.uByte(receivevMessage[4]) == MessageConstants.RESPONSE_NIOS_HANDSHAKE) {
                             toastMessage = "Handshake!";
                             State.heartBeatTimmer.cancel();
+                            enableActions(true);
                         }
                         else {
                             toastMessage = "Command: " + receivevMessage[2] + " failed with code: " + receivevMessage[3];
@@ -86,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
                     else if (Util.uByte(receivevMessage[0]) == MessageConstants.ID_MESG_IMAGE) {
                         displayImage(receivevMessage, 3, (receivevMessage[1] << 8) + Util.uByte(receivevMessage[2]));
                     }
-                    if (!mHoldingButton) {
+                    if (!mHoldingButton && !mAccelMovement) {
                         enableActions(true);
                     }
                     mCanSendCommands.set(true);
@@ -107,14 +108,15 @@ public class MainActivity extends AppCompatActivity {
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
+        // TODO: FIX THIS - if user skips onRest, mAccelMovement doesn't get released
         mDirectionDetector = new DirectionDetector(new DirectionDetector.OnDirectionChangeListener() {
             @Override
             public void onRest() {
                 Log.i("Direction", "rest");
-                if (mHoldingButton) {
+                if (mAccelMovement) {
                     Log.i("Fire", "CANCEL_TASK");
                     toast.out("release");
-                    mHoldingButton = false;
+                    mAccelMovement = false;
                     if (mSendCommandTask != null) {
                         mSendCommandTask.cancel(true);
                     }
@@ -125,27 +127,48 @@ public class MainActivity extends AppCompatActivity {
             public void onUp() {
                 Log.i("Direction", "up");
                 if (mAllowActions && (mSendCommandTask == null || mSendCommandTask.getStatus() == AsyncTask.Status.FINISHED)) {
-                    Log.i("Fire", "START_TASK");
+                    Log.i("START_TASK", "UP");
                     enableActions(false);
-                    mHoldingButton = true;
+                    mAccelMovement = true;
                     mSendCommandTask = new SendCommandTask();
-                    mSendCommandTask.execute(SendCommandTask.CommandType.FIRE);
+                    mSendCommandTask.execute(SendCommandTask.CommandType.UP);
                 }
             }
 
             @Override
             public void onDown() {
                 Log.i("Direction", "down");
+                if (mAllowActions && (mSendCommandTask == null || mSendCommandTask.getStatus() == AsyncTask.Status.FINISHED)) {
+                    Log.i("START_TASK", "DOWN");
+                    enableActions(false);
+                    mAccelMovement = true;
+                    mSendCommandTask = new SendCommandTask();
+                    mSendCommandTask.execute(SendCommandTask.CommandType.DOWN);
+                }
             }
 
             @Override
             public void onLeft() {
                 Log.i("Direction", "left");
+                if (mAllowActions && (mSendCommandTask == null || mSendCommandTask.getStatus() == AsyncTask.Status.FINISHED)) {
+                    Log.i("START_TASK", "LEFT");
+                    enableActions(false);
+                    mAccelMovement = true;
+                    mSendCommandTask = new SendCommandTask();
+                    mSendCommandTask.execute(SendCommandTask.CommandType.LEFT);
+                }
             }
 
             @Override
             public void onRight() {
                 Log.i("Direction", "right");
+                if (mAllowActions && (mSendCommandTask == null || mSendCommandTask.getStatus() == AsyncTask.Status.FINISHED)) {
+                    Log.i("START_TASK", "RIGHT");
+                    enableActions(false);
+                    mAccelMovement = true;
+                    mSendCommandTask = new SendCommandTask();
+                    mSendCommandTask.execute(SendCommandTask.CommandType.RIGHT);
+                }
             }
         });
 
@@ -159,6 +182,7 @@ public class MainActivity extends AppCompatActivity {
         // on hold buttons
         mCanSendCommands = new AtomicBoolean(false);
         mHoldingButton = false;
+        mAccelMovement = false;
         setUpButtonsHandler();
 
         mTabLayout = (TabLayout) findViewById(R.id.tab_layout_modes);
@@ -299,23 +323,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // TODO: remove this onClick callback to enable on hold button clicks
+    // TODO: remove onclicks for up down left right
     public void buttonPress(View view) {
-        /*
         enableActions(false);
         switch(view.getId()) {
-            case R.id.button_up:
-                rotateUp();
-                break;
-            case R.id.button_down:
-                rotateDown();
-                break;
-            case R.id.button_right:
-                rotateRight();
-                break;
-            case R.id.button_left:
-                rotateLeft();
-                break;
             case R.id.button_fire:
                 fire();
                 break;
@@ -325,8 +336,6 @@ public class MainActivity extends AppCompatActivity {
             default:
                 break;
         }
-        toast.out(toastMessage);
-        */
     }
 
 
@@ -337,7 +346,8 @@ public class MainActivity extends AppCompatActivity {
             if (x_angle <= 127 && x_angle >= -128 && y_angle <= 127 && y_angle >= -128) {
                 enableActions(false);
                 State.mmCommunicationThread.commandMoveAngle(x_angle, y_angle);
-                takePicture();
+                // TODO: add this back after calibrating angles
+                // takePicture();
             }
         }
     }
@@ -403,9 +413,6 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case R.id.button_left:
                     cmdToBtn.put(i, SendCommandTask.CommandType.LEFT);
-                    break;
-                case R.id.button_fire:
-                    cmdToBtn.put(i, SendCommandTask.CommandType.FIRE);
                     break;
             }
         }
