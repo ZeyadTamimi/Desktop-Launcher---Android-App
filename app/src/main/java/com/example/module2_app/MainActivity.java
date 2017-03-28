@@ -31,19 +31,21 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+// TODO: allow users to disable/enable accelerometer movement
+// TODO: FIX - maybe race condition with accelerometer movements
 public class MainActivity extends AppCompatActivity {
-    private static final long WAIT_TIME = 2000;
+    //--------
+    // FIELDS
+    //----------------------------------------------------------------------------------------------
     private static final int X_MAX_ANGLE = 45;
     private static final int Y_MAX_ANGLE = 30;
 
     public static AppToast toast;
-
-    private String toastMessage = "MESSAGE";
+    private String toastMessage = "";
 
     private AsyncTask<SendCommandTask.CommandType, Void, Void> mSendCommandTask;
     public static AtomicBoolean mCanSendCommands;
-    private boolean mHoldingButton;
-    private boolean mAccelMovement;
+    private boolean mHoldingButton, mAccelMovement;
     // NOTE: this is modified through enableActions()
     //       read this value to see if we can click buttons / switch modes
     private boolean mAllowActions;
@@ -61,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar mPictureLoading;
     private TextView mTextNotConnected;
 
-    // communication handler
+    // bluetooth communication handler
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -96,6 +98,9 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    //---------------
+    // STATE CHANGES
+    //----------------------------------------------------------------------------------------------
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -103,11 +108,19 @@ public class MainActivity extends AppCompatActivity {
         Toolbar myToolbar = (Toolbar) findViewById(R.id.activity_main_toolbar);
         setSupportActionBar(myToolbar);
 
-        // sensor initialization
+        ///////////
+        // Flags //
+        ///////////
+        mCanSendCommands = new AtomicBoolean(false);
+        mHoldingButton = false;
+        mAccelMovement = false;
+
+        //////////////////////////////
+        // Sesnsors (Accelerometer) //
+        //////////////////////////////
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-
         // TODO: FIX THIS - if user skips onRest, mAccelMovement doesn't get released
         mDirectionDetector = new DirectionDetector(new DirectionDetector.OnDirectionChangeListener() {
             @Override
@@ -171,20 +184,23 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
-        // initialize UI element references
+        ///////////////////////////
+        // UI Element References //
+        ///////////////////////////
         mButtonsArea = (RelativeLayout) findViewById(R.id.section_buttons);
         mPictureView = (ImageView) findViewById(R.id.iv_picture);
         mPictureLoading = (ProgressBar) findViewById(R.id.icon_loading_picture);
         mTextNotConnected = (TextView) findViewById(R.id.text_not_connected);
 
         toast = new AppToast(getApplicationContext());
-        // on hold buttons
-        mCanSendCommands = new AtomicBoolean(false);
-        mHoldingButton = false;
-        mAccelMovement = false;
+        /////////////////////
+        // Button Handlers //
+        /////////////////////
         setUpButtonsHandler();
 
+        ////////////////////
+        // Mode Switching //
+        ////////////////////
         mTabLayout = (TabLayout) findViewById(R.id.tab_layout_modes);
         mTabStrip = ((LinearLayout) mTabLayout.getChildAt(0));
         mTabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -197,20 +213,15 @@ public class MainActivity extends AppCompatActivity {
                     enableButtons(toastMessage.equals("MANUAL"));
                 }
             }
-
             @Override
-            public void onTabUnselected(TabLayout.Tab tab) {
-
-            }
-
+            public void onTabUnselected(TabLayout.Tab tab) {}
             @Override
-            public void onTabReselected(TabLayout.Tab tab) {
-
-            }
+            public void onTabReselected(TabLayout.Tab tab) {}
         });
 
-
-
+        ////////////////////////////////
+        // Picture Frame Movement Tap //
+        ////////////////////////////////
         mPictureView.setOnTouchListener(new View.OnTouchListener(){
             @Override
             public boolean onTouch(View view, MotionEvent event) {
@@ -246,6 +257,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    //----------------------------------------------------------------------------------------------
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -255,7 +267,7 @@ public class MainActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
-
+    //----------------------------------------------------------------------------------------------
     @Override
     public void onResume() {
         super.onResume();
@@ -296,12 +308,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //----------------------------------------------------------------------------------------------
     @Override
     public void onPause() {
         super.onPause();
         mSensorManager.unregisterListener(mDirectionDetector);
     }
 
+    //----------------------------------------------------------------------------------------------
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection
@@ -322,8 +336,9 @@ public class MainActivity extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
-
-    // TODO: remove onclicks for up down left right
+    //-----------------
+    // Button Handlers
+    //----------------------------------------------------------------------------------------------
     public void buttonPress(View view) {
         enableActions(false);
         switch(view.getId()) {
@@ -338,65 +353,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
-    private void rotateTouch(int x_angle, int y_angle){
-        if (mAllowActions) {
-            toastMessage = "x angle= "+ x_angle + " " + "y angle = " + y_angle;
-            // toast.out(toastMessage);
-            if (x_angle <= 127 && x_angle >= -128 && y_angle <= 127 && y_angle >= -128) {
-                enableActions(false);
-                State.mmCommunicationThread.commandMoveAngle(x_angle, y_angle);
-                // TODO: add this back after calibrating angles
-                // takePicture();
-            }
-        }
-    }
-
-    private void rotateUp() {
-        toastMessage = "Up";
-        State.mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_UP, 0);
-    }
-    private void rotateDown() {
-        toastMessage = "Down";
-        State.mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_DOWN, 0);
-    }
-    private void rotateRight() {
-        toastMessage = "Right";
-        State.mmCommunicationThread.commandMoveTimeSpeed(MessageConstants.MOVE_RIGHT, State.turret_speed_bar_value, 50000);
-    }
-    private void rotateLeft() {
-        toastMessage = "Left";
-        State.mmCommunicationThread.commandMoveTimeSpeed(MessageConstants.MOVE_LEFT, State.turret_speed_bar_value, 50000);
-    }
-
-    private void fire() {
-        toastMessage = "Fire";
-        State.mmCommunicationThread.commandFire();
-    }
-
-    public void takePicture() {
-        showLoading(true);
-        toastMessage = "Take Picture";
-        State.mmCommunicationThread.requestMessage(MessageConstants.ID_MESG_IMAGE);
-    }
-
-    public void enableActions(boolean enable) {
-        mAllowActions = enable;
-        enableButtons(enable);
-
-        for(int i = 0; i < mTabStrip.getChildCount(); i++) {
-            mTabStrip.getChildAt(i).setAlpha(enable ? 1f : 0.3f);
-            mTabStrip.getChildAt(i).setClickable(enable);
-        }
-    }
-
-    public void enableButtons(boolean enable) {
-        for (int i = 0; i < mButtonsArea.getChildCount(); i++) {
-            mButtonsArea.getChildAt(i).setAlpha(enable ? 1f : 0.3f);
-            mButtonsArea.getChildAt(i).setClickable(enable);
-        }
-    }
-
+    //----------------------------------------------------------------------------------------------
     // TODO: maybe a better way to do this
     private void setUpButtonsHandler() {
         Map<Integer, SendCommandTask.CommandType> cmdToBtn = new HashMap<>();
@@ -448,6 +405,36 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    //---------
+    // Actions
+    //----------------------------------------------------------------------------------------------
+    private void rotateTouch(int x_angle, int y_angle){
+        if (mAllowActions) {
+            toastMessage = "x angle= "+ x_angle + " " + "y angle = " + y_angle;
+            // toast.out(toastMessage);
+            if (x_angle <= 127 && x_angle >= -128 && y_angle <= 127 && y_angle >= -128) {
+                enableActions(false);
+                State.mmCommunicationThread.commandMoveAngle(x_angle, y_angle);
+                // TODO: add this back after calibrating angles
+                // takePicture();
+            }
+        }
+    }
+
+    //----------------------------------------------------------------------------------------------
+    private void fire() {
+        toast.out("FIRE");
+        State.mmCommunicationThread.commandFire();
+    }
+
+    //----------------------------------------------------------------------------------------------
+    private void takePicture() {
+        toast.out("PICTURE");
+        showLoading(true);
+        State.mmCommunicationThread.requestMessage(MessageConstants.ID_MESG_IMAGE);
+    }
+
+    //----------------------------------------------------------------------------------------------
     private void displayImage(byte[] byteArray, int offset, int size) {
         showLoading(false);
         ByteArrayInputStream in = new ByteArrayInputStream(byteArray, offset, size);
@@ -457,10 +444,31 @@ public class MainActivity extends AppCompatActivity {
             Util.saveImage(byteArray, offset, size);
     }
 
+    //----------------------------------------------------------------------------------------------
+    public void enableActions(boolean enable) {
+        mAllowActions = enable;
+        enableButtons(enable);
+
+        for(int i = 0; i < mTabStrip.getChildCount(); i++) {
+            mTabStrip.getChildAt(i).setAlpha(enable ? 1f : 0.3f);
+            mTabStrip.getChildAt(i).setClickable(enable);
+        }
+    }
+
+    //----------------------------------------------------------------------------------------------
+    public void enableButtons(boolean enable) {
+        for (int i = 0; i < mButtonsArea.getChildCount(); i++) {
+            mButtonsArea.getChildAt(i).setAlpha(enable ? 1f : 0.3f);
+            mButtonsArea.getChildAt(i).setClickable(enable);
+        }
+    }
+
+    //----------------------------------------------------------------------------------------------
     private void showLoading(boolean on) {
         mPictureLoading.setVisibility(on ? View.VISIBLE : View.GONE);
     }
 
+    //----------------------------------------------------------------------------------------------
     private void showNotConnected(boolean on) {
         mTextNotConnected.setVisibility(on ? View.VISIBLE : View.GONE);
     }
