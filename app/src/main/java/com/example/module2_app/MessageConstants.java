@@ -41,6 +41,7 @@ public interface MessageConstants {
     // Message Sizes
     public static final int SIZE_COMMAND_MOVE_TIME = 5;
     public static final int SIZE_COMMAND_MOVE_TIME_SPEED = 6;
+    public static final int SIZE_COMMAND_MOVE_ANGLE = 2;
     public static final int SIZE_REQUEST = 1;
 
     // Move Directions
