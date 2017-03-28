@@ -131,6 +131,23 @@ class CommunicationThread extends Thread {
         write(moveCommand);
 
     }
+
+	public void commandMoveTimeSpeed(int direction, int speed, long time) {
+        byte[] moveCommand = new byte[MessageConstants.SIZE_FIELD_HEADER +
+                MessageConstants.SIZE_COMMAND_MOVE_TIME_SPEED];
+
+        moveCommand[0] = (byte) MessageConstants.ID_COMMAND_MOVE_TIME_SPEED;
+        moveCommand[1] = (byte) (MessageConstants.SIZE_COMMAND_MOVE_TIME_SPEED >> 8);
+        moveCommand[2] = (byte) (MessageConstants.SIZE_COMMAND_MOVE_TIME_SPEED & 0xFF);
+        moveCommand[3] = (byte) (speed & 0xFF);
+        moveCommand[4] = (byte) (direction & 0xFF);
+        moveCommand[5] = (byte) ((time >> 24) & 0xFF);
+        moveCommand[6] = (byte) ((time >> 16) & 0xFF);
+        moveCommand[7] = (byte) ((time >> 8) & 0xFF);
+        moveCommand[8] = (byte) (time & 0xFF);
+        write(moveCommand);
+    }
+
     public void commandFire() {
         byte[] fireCommand = new byte[MessageConstants.SIZE_FIELD_HEADER];
 

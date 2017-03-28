@@ -15,8 +15,9 @@ public interface MessageConstants {
     public static final int ID_COMMAND_MOVE_TIME = 0x01;
     public static final int ID_COMMAND_MOVE_ANGLE = 0x02;
     public static final int ID_COMMAND_CHANGE_SPEED = 0x03;
-    public static final int ID_COMMAND_ANDROID_HANDSHAKE = 0xFF;
+    public static final int ID_COMMAND_MOVE_TIME_SPEED = 0x05;
     public static final int ID_COMMAND_FIRE = 0x04;
+    public static final int ID_COMMAND_ANDROID_HANDSHAKE = 0xFF;
     public static final int ID_RESPONSE = 0xAA;
     public static final int ID_REQUEST = 0xF1;
     public static final int ID_MESG_IMAGE = 0xF2;
@@ -27,9 +28,8 @@ public interface MessageConstants {
     public static final int SIZE_FIELD_LENGTH = 2;
     public static final int SIZE_FIELD_HEADER = SIZE_FIELD_ID + SIZE_FIELD_LENGTH;
     public static final int SIZE_FIELD_COMMAND_MOVE_DIR = 1;
-    public static final int SIZE_FIELD_COMMAND_MOVE_TIME = 1;
-
-
+    public static final int SIZE_FIELD_COMMAND_MOVE_TIME = 4;
+    public static final int SIZE_FIELD_COMMAND_MOVE_SPEED = 1;
 
     // Response Codes
     public static final int RESPONSE_NO_ERROR = 0x00;
@@ -40,7 +40,7 @@ public interface MessageConstants {
 
     // Message Sizes
     public static final int SIZE_COMMAND_MOVE_TIME = 5;
-    public static final int SIZE_COMMAND_MOVE_ANGLE = 2;
+    public static final int SIZE_COMMAND_MOVE_TIME_SPEED = 6;
     public static final int SIZE_REQUEST = 1;
 
     // Move Directions

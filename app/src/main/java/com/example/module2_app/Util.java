@@ -6,6 +6,8 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 public class Util {
 
@@ -35,9 +37,9 @@ public class Util {
             File dtrPicDir = new File(picDir, "DTR Photos");
             dtrPicDir.mkdir();
             // Check next available number to store file as
-            File[] listOfFiles = dtrPicDir.listFiles();
             // Create the new file
-            File photoJPEG = new File(dtrPicDir, "dtr_" + State.lastPhotoNumber +".jpg");
+            String timeStamp = new SimpleDateFormat("yyyy_mm_dd_HHmmss").format(Calendar.getInstance().getTime());
+            File photoJPEG = new File(dtrPicDir, "dtr_" + timeStamp +".jpg");
             photoJPEG.createNewFile();
             // Write to the file
             FileOutputStream fos = new FileOutputStream (photoJPEG);

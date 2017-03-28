@@ -350,11 +350,11 @@ public class MainActivity extends AppCompatActivity {
     }
     private void rotateRight() {
         toastMessage = "Right";
-        State.mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_RIGHT, 50000);
+        State.mmCommunicationThread.commandMoveTimeSpeed(MessageConstants.MOVE_RIGHT, State.turret_speed_bar_value, 50000);
     }
     private void rotateLeft() {
         toastMessage = "Left";
-        State.mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_LEFT, 50000);
+        State.mmCommunicationThread.commandMoveTimeSpeed(MessageConstants.MOVE_LEFT, State.turret_speed_bar_value, 50000);
     }
 
     private void fire() {
