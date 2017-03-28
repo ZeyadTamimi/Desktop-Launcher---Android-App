@@ -15,6 +15,7 @@ public class DirectionDetector implements SensorEventListener {
     private float orientation[] = new float[3];
 
     public interface OnDirectionChangeListener {
+        void onRest();
         void onUp();
         void onDown();
         void onLeft();
@@ -57,6 +58,7 @@ public class DirectionDetector implements SensorEventListener {
                     else if (orientation[1] < -1.04f) mListener.onUp(); // screen facing user
                     else if (orientation[2] < -0.2f) mListener.onLeft(); // tilt left or roll left
                     else if (orientation[2] > 0.5f) mListener.onRight(); // tilt right or roll right
+                    else mListener.onRest();
                 }
             }
         }

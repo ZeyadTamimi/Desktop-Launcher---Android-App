@@ -86,20 +86,14 @@ public class MainActivity extends AppCompatActivity {
                     else if (Util.uByte(receivevMessage[0]) == MessageConstants.ID_MESG_IMAGE) {
                         displayImage(receivevMessage, 3, (receivevMessage[1] << 8) + Util.uByte(receivevMessage[2]));
                     }
-                    // TODO: add this to enable on hold button clicks, then delete the next enableActions
-                    /*
                     if (!mHoldingButton) {
                         enableActions(true);
                     }
-                    */
-                    enableActions(true);
                     mCanSendCommands.set(true);
                 }
             }
         }
     };
-
-    private FloatingActionButton fireBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,12 +102,6 @@ public class MainActivity extends AppCompatActivity {
         Toolbar myToolbar = (Toolbar) findViewById(R.id.activity_main_toolbar);
         setSupportActionBar(myToolbar);
 
-        // on hold buttons
-        mCanSendCommands = new AtomicBoolean(false);
-        mHoldingButton = false;
-        // TODO: add this to enable on hold button clicks
-        // setUpButtonsHandler();
-
         // sensor initialization
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -121,35 +109,43 @@ public class MainActivity extends AppCompatActivity {
 
         mDirectionDetector = new DirectionDetector(new DirectionDetector.OnDirectionChangeListener() {
             @Override
+            public void onRest() {
+                Log.i("Direction", "rest");
+                if (mHoldingButton) {
+                    Log.i("Fire", "CANCEL_TASK");
+                    toast.out("release");
+                    mHoldingButton = false;
+                    if (mSendCommandTask != null) {
+                        mSendCommandTask.cancel(true);
+                    }
+                }
+            }
+
+            @Override
             public void onUp() {
                 Log.i("Direction", "up");
-                if (mCanSendCommands.getAndSet(false)) {
-                    rotateUp();
+                if (mAllowActions && (mSendCommandTask == null || mSendCommandTask.getStatus() == AsyncTask.Status.FINISHED)) {
+                    Log.i("Fire", "START_TASK");
+                    enableActions(false);
+                    mHoldingButton = true;
+                    mSendCommandTask = new SendCommandTask();
+                    mSendCommandTask.execute(SendCommandTask.CommandType.FIRE);
                 }
             }
 
             @Override
             public void onDown() {
                 Log.i("Direction", "down");
-                if (mCanSendCommands.getAndSet(false)) {
-                    rotateDown();
-                }
             }
 
             @Override
             public void onLeft() {
                 Log.i("Direction", "left");
-                if (mCanSendCommands.getAndSet(false)) {
-                    rotateLeft();
-                }
             }
 
             @Override
             public void onRight() {
                 Log.i("Direction", "right");
-                if (mCanSendCommands.getAndSet(false)) {
-                    rotateRight();
-                }
             }
         });
 
@@ -160,6 +156,10 @@ public class MainActivity extends AppCompatActivity {
         mTextNotConnected = (TextView) findViewById(R.id.text_not_connected);
 
         toast = new AppToast(getApplicationContext());
+        // on hold buttons
+        mCanSendCommands = new AtomicBoolean(false);
+        mHoldingButton = false;
+        setUpButtonsHandler();
 
         mTabLayout = (TabLayout) findViewById(R.id.tab_layout_modes);
         mTabStrip = ((LinearLayout) mTabLayout.getChildAt(0));
@@ -301,6 +301,7 @@ public class MainActivity extends AppCompatActivity {
 
     // TODO: remove this onClick callback to enable on hold button clicks
     public void buttonPress(View view) {
+        /*
         enableActions(false);
         switch(view.getId()) {
             case R.id.button_up:
@@ -325,6 +326,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
         toast.out(toastMessage);
+        */
     }
 
 
@@ -368,7 +370,7 @@ public class MainActivity extends AppCompatActivity {
         State.mmCommunicationThread.requestMessage(MessageConstants.ID_MESG_IMAGE);
     }
 
-    private void enableActions(boolean enable) {
+    public void enableActions(boolean enable) {
         mAllowActions = enable;
         enableButtons(enable);
 
@@ -378,7 +380,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void enableButtons(boolean enable) {
+    public void enableButtons(boolean enable) {
         for (int i = 0; i < mButtonsArea.getChildCount(); i++) {
             mButtonsArea.getChildAt(i).setAlpha(enable ? 1f : 0.3f);
             mButtonsArea.getChildAt(i).setClickable(enable);
@@ -387,7 +389,7 @@ public class MainActivity extends AppCompatActivity {
 
     // TODO: maybe a better way to do this
     private void setUpButtonsHandler() {
-        Map<Integer, SendCommandTask.CommandType> cmdToBtn = new HashMap<>(mButtonsArea.getChildCount());
+        Map<Integer, SendCommandTask.CommandType> cmdToBtn = new HashMap<>();
         for (int i = 0; i < mButtonsArea.getChildCount(); i++) {
             switch (mButtonsArea.getChildAt(i).getId()) {
                 case R.id.button_up:

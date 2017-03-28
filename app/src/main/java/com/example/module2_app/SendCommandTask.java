@@ -3,6 +3,7 @@ package com.example.module2_app;
 import android.os.AsyncTask;
 
 public class SendCommandTask extends AsyncTask<SendCommandTask.CommandType, Void, Void> {
+
     enum CommandType {
         UP, DOWN, LEFT, RIGHT, FIRE;
     }
@@ -10,14 +11,12 @@ public class SendCommandTask extends AsyncTask<SendCommandTask.CommandType, Void
     @Override
     protected Void doInBackground(CommandType... params) {
         while(!isCancelled()) {
-            if (MainActivity.mCanSendCommands.get() == false)
+            if (!MainActivity.mCanSendCommands.get())
                 continue;
 
-            // TODO: go through logic for multiple commands
-            // maybe it's
-            // execute the command
+            // TODO: go through logic for multiple commands?
             for (int i = 0; i < params.length; i++) {
-                while (MainActivity.mCanSendCommands.get() == false);
+                while (!MainActivity.mCanSendCommands.get());
                 switch (params[i]) {
                     case UP:
                         State.mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_UP, 0);
