@@ -196,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
         /////////////////////
         // Button Handlers //
         /////////////////////
-        setUpButtonsHandler();
+        enableButtonListners(true);
 
         ////////////////////
         // Mode Switching //
@@ -354,55 +354,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //----------------------------------------------------------------------------------------------
-    // TODO: maybe a better way to do this
-    private void setUpButtonsHandler() {
-        Map<Integer, SendCommandTask.CommandType> cmdToBtn = new HashMap<>();
-        for (int i = 0; i < mButtonsArea.getChildCount(); i++) {
-            switch (mButtonsArea.getChildAt(i).getId()) {
-                case R.id.button_up:
-                    cmdToBtn.put(i, SendCommandTask.CommandType.UP);
-                    break;
-                case R.id.button_down:
-                    cmdToBtn.put(i, SendCommandTask.CommandType.DOWN);
-                    break;
-                case R.id.button_right:
-                    cmdToBtn.put(i, SendCommandTask.CommandType.RIGHT);
-                    break;
-                case R.id.button_left:
-                    cmdToBtn.put(i, SendCommandTask.CommandType.LEFT);
-                    break;
-            }
-        }
-
-        for (Integer i : cmdToBtn.keySet()) {
-            final SendCommandTask.CommandType cmd = cmdToBtn.get(i);
-            mButtonsArea.getChildAt(i).setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    switch (event.getAction()) {
-                        case MotionEvent.ACTION_DOWN:
-                            if (mAllowActions) {
-                                enableActions(false);
-                                mHoldingButton = true;
-                                toast.out("fire");
-                                mSendCommandTask = new SendCommandTask();
-                                mSendCommandTask.execute(cmd);
-                            }
-                            break;
-                        case MotionEvent.ACTION_CANCEL:
-                        case MotionEvent.ACTION_UP:
-                            if (mHoldingButton) {
-                                toast.out("release");
-                                mHoldingButton = false;
-                                mSendCommandTask.cancel(false);
-                            }
-                            break;
-                    }
-                    return true;
-                }
-            });
-        }
-
+    private void enableButtonListners(boolean enable) {
+        findViewById(R.id.button_up).setOnTouchListener(
+                enable ? new ButtonOnHoldListner(SendCommandTask.CommandType.UP) : null
+        );
+        findViewById(R.id.button_down).setOnTouchListener(
+                enable ? new ButtonOnHoldListner(SendCommandTask.CommandType.DOWN) : null
+        );
+        findViewById(R.id.button_left).setOnTouchListener(
+                enable ? new ButtonOnHoldListner(SendCommandTask.CommandType.LEFT) : null
+        );
+        findViewById(R.id.button_right).setOnTouchListener(
+                enable ? new ButtonOnHoldListner(SendCommandTask.CommandType.RIGHT) : null
+        );
     }
 
     //---------
@@ -481,6 +445,39 @@ public class MainActivity extends AppCompatActivity {
     //----------------------------------------------------------------------------------------------
     private void showNotConnected(boolean on) {
         mTextNotConnected.setVisibility(on ? View.VISIBLE : View.GONE);
+    }
+
+    //----------------------------------------------------------------------------------------------
+    private class ButtonOnHoldListner implements View.OnTouchListener {
+        SendCommandTask.CommandType mCmd;
+
+        public ButtonOnHoldListner(SendCommandTask.CommandType cmd) {
+            mCmd = cmd;
+        }
+
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    if (mAllowActions) {
+                        enableActions(false);
+                        mHoldingButton = true;
+                        toast.out("fire");
+                        mSendCommandTask = new SendCommandTask();
+                        mSendCommandTask.execute(mCmd);
+                    }
+                    break;
+                case MotionEvent.ACTION_CANCEL:
+                case MotionEvent.ACTION_UP:
+                    if (mHoldingButton) {
+                        toast.out("release");
+                        mHoldingButton = false;
+                        mSendCommandTask.cancel(false);
+                    }
+                    break;
+            }
+            return true;
+        }
     }
 }
 
