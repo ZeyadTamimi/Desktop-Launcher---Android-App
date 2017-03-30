@@ -131,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
                     toast.out("release");
                     mAccelMovement = false;
                     if (mSendCommandTask != null) {
-                        mSendCommandTask.cancel(true);
+                        mSendCommandTask.cancel(false);
                     }
                 }
             }
@@ -271,9 +271,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        // sesnsor listeners
-        mSensorManager.registerListener(mDirectionDetector, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-        mSensorManager.registerListener(mDirectionDetector, mMagnetometer, SensorManager.SENSOR_DELAY_NORMAL);
+
+        // TODO: enableAccelermoter depending on button toggle
+        enableAccelerometer(false);
 
         // communication thread
         if (State.btConnected()) {
@@ -312,7 +312,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onPause() {
         super.onPause();
-        mSensorManager.unregisterListener(mDirectionDetector);
+        enableAccelerometer(false);
     }
 
     //----------------------------------------------------------------------------------------------
@@ -394,7 +394,7 @@ public class MainActivity extends AppCompatActivity {
                             if (mHoldingButton) {
                                 toast.out("release");
                                 mHoldingButton = false;
-                                mSendCommandTask.cancel(true);
+                                mSendCommandTask.cancel(false);
                             }
                             break;
                     }
@@ -444,6 +444,16 @@ public class MainActivity extends AppCompatActivity {
             Util.saveImage(byteArray, offset, size);
     }
 
+    //----------------------------------------------------------------------------------------------
+    private void enableAccelerometer(boolean enable) {
+        if (enable) {
+            mSensorManager.registerListener(mDirectionDetector, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+            mSensorManager.registerListener(mDirectionDetector, mMagnetometer, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        else {
+            mSensorManager.unregisterListener(mDirectionDetector);
+        }
+    }
     //----------------------------------------------------------------------------------------------
     public void enableActions(boolean enable) {
         mAllowActions = enable;
