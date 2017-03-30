@@ -18,15 +18,15 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import java.io.ByteArrayInputStream;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
     private DirectionDetector mDirectionDetector;
 
     // ui elements
+    private Switch mAccelOnSwitch;
     private RelativeLayout mButtonsArea;
     private TabLayout mTabLayout;
     private LinearLayout mTabStrip;
@@ -118,6 +119,24 @@ public class MainActivity extends AppCompatActivity {
         //////////////////////////////
         // Sesnsors (Accelerometer) //
         //////////////////////////////
+        mAccelOnSwitch = ((Switch) findViewById(R.id.switch_accelerometer));
+        mAccelOnSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    enableAccelerometer(true);
+                    enableButtons(false);
+                    enableButtonListners(false);
+                    return;
+                }
+
+                enableAccelerometer(false);
+                enableButtons(mAllowActions);
+                enableButtonListners(mAllowActions);
+                return;
+            }
+        });
+
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
@@ -272,8 +291,7 @@ public class MainActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
 
-        // TODO: enableAccelermoter depending on button toggle
-        enableAccelerometer(false);
+        enableAccelerometer(mAccelOnSwitch.isChecked());
 
         // communication thread
         if (State.btConnected()) {
@@ -281,10 +299,11 @@ public class MainActivity extends AppCompatActivity {
                 State.mmCommunicationThread = new CommunicationThread(State.getBtSocket(), mHandler);
                 State.mmCommunicationThread.start();
 
-                if (State.heartBeatTimmer == null) {
-                    State.heartBeatTimmer = new Timer();
+                if (State.heartBeatTimmer != null) {
+                    State.heartBeatTimmer.cancel();
                 }
 
+                State.heartBeatTimmer = new Timer();
                 // cancel heartbeat timer and restart it
                 final Handler handler = new Handler();
                 TimerTask handshake = new TimerTask() {
@@ -421,7 +440,7 @@ public class MainActivity extends AppCompatActivity {
     //----------------------------------------------------------------------------------------------
     public void enableActions(boolean enable) {
         mAllowActions = enable;
-        enableButtons(enable);
+        enableButtons(enable ? !mAccelOnSwitch.isChecked() : false);
 
         for(int i = 0; i < mTabStrip.getChildCount(); i++) {
             mTabStrip.getChildAt(i).setAlpha(enable ? 1f : 0.3f);

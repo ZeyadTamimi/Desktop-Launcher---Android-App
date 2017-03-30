@@ -93,93 +93,107 @@
         </RelativeLayout>
 
         <RelativeLayout
-            android:id="@+id/section_buttons"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="0.45"
-            android:elevation="10dp">
+            android:layout_weight="0.45">
 
-            <android.support.design.widget.FloatingActionButton
-                android:id="@+id/button_left"
+            <Switch
+                android:id="@+id/switch_accelerometer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:layout_margin="30dp"
-                android:layout_marginRight="30dp"
-                android:layout_toLeftOf="@+id/button_fire"
-                android:clickable="true"
-                android:duplicateParentState="false"
-                app:backgroundTint="?attr/colorButtonNormal"
-                app:elevation="10dp"
-                app:fabSize="normal"
-                app:srcCompat="@mipmap/ic_chevron_left_black_48dp" />
+                android:checked="false" />
 
-            <android.support.design.widget.FloatingActionButton
-                android:id="@+id/button_up"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_above="@+id/button_fire"
-                android:layout_centerHorizontal="true"
-                android:layout_marginBottom="30dp"
-                android:clickable="true"
-                android:duplicateParentState="false"
-                app:backgroundTint="?attr/colorButtonNormal"
-                app:elevation="10dp"
-                app:fabSize="normal"
-                app:srcCompat="@mipmap/ic_expand_less_black_48dp" />
+            <RelativeLayout
+                android:id="@+id/section_buttons"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="0.45"
+                android:elevation="10dp">
 
-            <android.support.design.widget.FloatingActionButton
-                android:id="@+id/button_right"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:layout_marginLeft="30dp"
-                android:layout_toRightOf="@+id/button_fire"
-                android:clickable="true"
-                android:duplicateParentState="false"
-                app:backgroundTint="?attr/colorButtonNormal"
-                app:elevation="10dp"
-                app:fabSize="normal"
-                app:srcCompat="@mipmap/ic_chevron_right_black_48dp" />
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/button_left"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_margin="30dp"
+                    android:layout_marginRight="30dp"
+                    android:layout_toLeftOf="@+id/button_fire"
+                    android:clickable="true"
+                    android:duplicateParentState="false"
+                    app:backgroundTint="?attr/colorButtonNormal"
+                    app:elevation="10dp"
+                    app:fabSize="normal"
+                    app:srcCompat="@mipmap/ic_chevron_left_black_48dp" />
 
-            <android.support.design.widget.FloatingActionButton
-                android:id="@+id/button_down"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/button_fire"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="30dp"
-                android:clickable="true"
-                android:duplicateParentState="false"
-                app:backgroundTint="?attr/colorButtonNormal"
-                app:elevation="10dp"
-                app:fabSize="normal"
-                app:srcCompat="@mipmap/ic_expand_more_black_48dp" />
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/button_up"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_above="@+id/button_fire"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginBottom="30dp"
+                    android:clickable="true"
+                    android:duplicateParentState="false"
+                    app:backgroundTint="?attr/colorButtonNormal"
+                    app:elevation="10dp"
+                    app:fabSize="normal"
+                    app:srcCompat="@mipmap/ic_expand_less_black_48dp" />
 
-            <android.support.design.widget.FloatingActionButton
-                android:id="@+id/button_fire"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_centerVertical="true"
-                android:clickable="true"
-                android:onClick="buttonPress"
-                app:backgroundTint="@color/colorAccent"
-                app:fabSize="normal"
-                app:srcCompat="@mipmap/ic_my_location_black_48dp" />
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/button_right"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginLeft="30dp"
+                    android:layout_toRightOf="@+id/button_fire"
+                    android:clickable="true"
+                    android:duplicateParentState="false"
+                    app:backgroundTint="?attr/colorButtonNormal"
+                    app:elevation="10dp"
+                    app:fabSize="normal"
+                    app:srcCompat="@mipmap/ic_chevron_right_black_48dp" />
 
-            <android.support.design.widget.FloatingActionButton
-                android:id="@+id/button_camera"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignBottom="@+id/button_up"
-                android:layout_alignLeft="@+id/button_left"
-                android:clickable="true"
-                android:onClick="buttonPress"
-                app:backgroundTint="?attr/colorPrimaryDark"
-                app:fabSize="normal"
-                app:srcCompat="@mipmap/ic_camera_alt_black_48dp" />
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/button_down"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/button_fire"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="30dp"
+                    android:clickable="true"
+                    android:duplicateParentState="false"
+                    app:backgroundTint="?attr/colorButtonNormal"
+                    app:elevation="10dp"
+                    app:fabSize="normal"
+                    app:srcCompat="@mipmap/ic_expand_more_black_48dp" />
+
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/button_fire"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:layout_centerVertical="true"
+                    android:clickable="true"
+                    android:onClick="buttonPress"
+                    app:backgroundTint="@color/colorAccent"
+                    app:fabSize="normal"
+                    app:srcCompat="@mipmap/ic_my_location_black_48dp" />
+
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/button_camera"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBottom="@+id/button_up"
+                    android:layout_alignLeft="@+id/button_left"
+                    android:clickable="true"
+                    android:onClick="buttonPress"
+                    app:backgroundTint="?attr/colorPrimaryDark"
+                    app:fabSize="normal"
+                    app:srcCompat="@mipmap/ic_camera_alt_black_48dp" />
+
+            </RelativeLayout>
         </RelativeLayout>
+
     </LinearLayout>
 
 
