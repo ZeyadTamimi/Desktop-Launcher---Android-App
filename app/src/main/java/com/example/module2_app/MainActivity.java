@@ -1,4 +1,5 @@
 package com.example.module2_app;
+import com.example.module2_app.tasks.*;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -42,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int Y_MAX_ANGLE = 30;
     private static final int NUM_BUTTONS = 6;
 
+    public static MainActivity reference;
     public static AppToast toast;
     private String toastMessage = "";
 
@@ -94,10 +96,7 @@ public class MainActivity extends AppCompatActivity {
                         displayImage(receiveMessage, 3, (receiveMessage[1] << 8) + Util.uByte(receiveMessage[2]));
                     }
 
-                    if (!mHoldingButton && !mAccelMovement) {
-                        enableActions(true);
-                    }
-
+                    enableActions(!mHoldingButton && !mAccelMovement);
                     mCanSendCommands.set(true);
                 }
             }
@@ -128,16 +127,8 @@ public class MainActivity extends AppCompatActivity {
         mAccelOnSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    enableAccelerometer(true);
-                    // TODO: only disable the movement buttons nicely
-                    enableButtons(mAllowActions);
-                    return;
-                }
-
-                enableAccelerometer(false);
+                enableAccelerometer(isChecked);
                 enableButtons(mAllowActions);
-                return;
             }
         });
 
@@ -302,7 +293,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-
+        reference = this;
+        enableActions(false);
         enableAccelerometer(mAccelOnSwitch.isChecked());
 
         // communication thread
@@ -310,40 +302,47 @@ public class MainActivity extends AppCompatActivity {
             if (State.mmCommunicationThread == null) {
                 State.mmCommunicationThread = new CommunicationThread(State.getBtSocket(), mHandler);
                 State.mmCommunicationThread.start();
-
-                if (State.heartBeatTimmer != null) {
-                    State.heartBeatTimmer.cancel();
-                }
-
-                State.heartBeatTimmer = new Timer();
-                // cancel heartbeat timer and restart it
-                final Handler handler = new Handler();
-                TimerTask handshake = new TimerTask() {
-                    @Override
-                    public void run() {
-                        handler.post(new Runnable() {
-                            public void run() {
-                                Log.i("info", "timer handshake");
-                                State.mmCommunicationThread.commandHandshake();
-                            }
-                        });
-                    }
-                };
-                State.heartBeatTimmer.schedule(handshake, 0, 1000);
             }
+
+            if (State.heartBeatTimmer != null) {
+                State.heartBeatTimmer.cancel();
+            }
+
+            State.heartBeatTimmer = new Timer();
+            // cancel heartbeat timer and restart it
+            final Handler handler = new Handler();
+            TimerTask handshake = new TimerTask() {
+                @Override
+                public void run() {
+                    handler.post(new Runnable() {
+                        public void run() {
+                            Log.i("info", "timer handshake");
+                            State.mmCommunicationThread.commandHandshake();
+                        }
+                    });
+                }
+            };
+            State.heartBeatTimmer.schedule(handshake, 0, 1000);
             showNotConnected(false);
+            return;
         }
-        else {
-            enableActions(false);
-            showNotConnected(true);
-        }
+
+        showNotConnected(true);
     }
 
     //----------------------------------------------------------------------------------------------
     @Override
     public void onPause() {
         super.onPause();
+        reference = this;
+
         enableAccelerometer(false);
+        if (mSendCommandTask != null)
+            mSendCommandTask.cancel(false);
+
+        mCanSendCommands.set(false);
+        mHoldingButton = false;
+        mAccelMovement = false;
     }
 
     //----------------------------------------------------------------------------------------------
@@ -462,23 +461,6 @@ public class MainActivity extends AppCompatActivity {
 
     //----------------------------------------------------------------------------------------------
     public void enableButtons(boolean enable) {
-        if (enable && mAccelOnSwitch.isChecked()) {
-            enableButtonListners(false);
-            // TODO: maybe a better way
-            // 0-3: movement, 4: fire, 5: camera
-            for (int i = 0; i < 4; i++) {
-                mButtonArray[i].setAlpha(0.3f);
-                mButtonArray[i].setClickable(false);
-            }
-            mButtonArray[4].setAlpha(1f);
-            mButtonArray[4].setClickable(true);
-            mButtonArray[5].setAlpha(1f);
-            mButtonArray[5].setClickable(true);
-            return;
-        }
-
-        // non-accelerometer mode
-        enableButtonListners(enable);
         for (FloatingActionButton btn : mButtonArray) {
             btn.setAlpha(enable ? 1f : 0.3f);
             btn.setClickable(enable);
@@ -510,7 +492,7 @@ public class MainActivity extends AppCompatActivity {
                     if (mAllowActions) {
                         enableActions(false);
                         mHoldingButton = true;
-                        toast.out("fire");
+                        toast.out(mCmd.name());
                         mSendCommandTask = new SendCommandTask();
                         mSendCommandTask.execute(mCmd);
                     }

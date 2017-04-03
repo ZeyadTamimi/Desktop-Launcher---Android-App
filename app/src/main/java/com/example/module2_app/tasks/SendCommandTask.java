@@ -1,11 +1,15 @@
-package com.example.module2_app;
+package com.example.module2_app.tasks;
 
 import android.os.AsyncTask;
+
+import com.example.module2_app.MainActivity;
+import com.example.module2_app.MessageConstants;
+import com.example.module2_app.State;
 
 // TODO: Remove FIRE command, keeping it here for testing purposes
 public class SendCommandTask extends AsyncTask<SendCommandTask.CommandType, Void, Void> {
 
-    enum CommandType {
+    public enum CommandType {
         UP, DOWN, LEFT, RIGHT, FIRE;
     }
 
@@ -25,10 +29,10 @@ public class SendCommandTask extends AsyncTask<SendCommandTask.CommandType, Void
                     State.mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_DOWN, 0);
                     break;
                 case LEFT:
-                    State.mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_LEFT, 50000);
+                    State.mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_LEFT, 100000);
                     break;
                 case RIGHT:
-                    State.mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_RIGHT, 50000);
+                    State.mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_RIGHT, 100000);
                     break;
                 case FIRE:
                     State.mmCommunicationThread.commandFire();

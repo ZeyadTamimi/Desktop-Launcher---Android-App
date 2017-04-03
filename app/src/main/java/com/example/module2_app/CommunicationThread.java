@@ -13,7 +13,7 @@ import java.io.OutputStream;
 
 import com.example.module2_app.MessageConstants;
 
-class CommunicationThread extends Thread {
+public class CommunicationThread extends Thread {
     private static final String TAG = "MY_APP_DEBUG_TAG";
     private final BluetoothSocket mmSocket;
     private final InputStream mmInStream;
