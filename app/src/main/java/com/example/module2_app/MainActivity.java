@@ -9,6 +9,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -31,14 +32,15 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-// TODO: allow users to disable/enable accelerometer movement
-// TODO: FIX - maybe race condition with accelerometer movements
+// TODO: fix positioning of accel switch
+// TODO: fix logic of when to display buttons when to not display buttons
 public class MainActivity extends AppCompatActivity {
     //--------
     // FIELDS
     //----------------------------------------------------------------------------------------------
     private static final int X_MAX_ANGLE = 45;
     private static final int Y_MAX_ANGLE = 30;
+    private static final int NUM_BUTTONS = 6;
 
     public static AppToast toast;
     private String toastMessage = "";
@@ -63,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
     private ImageView mPictureView;
     private ProgressBar mPictureLoading;
     private TextView mTextNotConnected;
+    // NOTE: 0-3: up down left right, 4-5: fire, camera
+    private FloatingActionButton[] mButtonArray;
 
     // bluetooth communication handler
     private Handler mHandler = new Handler() {
@@ -72,27 +76,28 @@ public class MainActivity extends AppCompatActivity {
                 case MessageConstants.MESSAGE_READ: {
                     // TODO: Handle all types of messages
                     // TODO: Size check
-                    byte[] receivevMessage = (byte[]) msg.obj;
-                    if (Util.uByte(receivevMessage[0]) == MessageConstants.ID_RESPONSE) {
-                        if (Util.uByte(receivevMessage[4]) == MessageConstants.RESPONSE_NO_ERROR) {
+                    byte[] receiveMessage = (byte[]) msg.obj;
+                    if (Util.uByte(receiveMessage[0]) == MessageConstants.ID_RESPONSE) {
+                        if (Util.uByte(receiveMessage[4]) == MessageConstants.RESPONSE_NO_ERROR) {
                             toastMessage = "Command Successful!";
                         }
-                        else if (Util.uByte(receivevMessage[4]) == MessageConstants.RESPONSE_NIOS_HANDSHAKE) {
+                        else if (Util.uByte(receiveMessage[4]) == MessageConstants.RESPONSE_NIOS_HANDSHAKE) {
                             toastMessage = "Handshake!";
                             State.heartBeatTimmer.cancel();
-                            enableActions(true);
                         }
                         else {
-                            toastMessage = "Command: " + receivevMessage[2] + " failed with code: " + receivevMessage[3];
+                            toastMessage = "Command: " + receiveMessage[2] + " failed with code: " + receiveMessage[3];
                         }
                         toast.out(toastMessage);
                     }
-                    else if (Util.uByte(receivevMessage[0]) == MessageConstants.ID_MESG_IMAGE) {
-                        displayImage(receivevMessage, 3, (receivevMessage[1] << 8) + Util.uByte(receivevMessage[2]));
+                    else if (Util.uByte(receiveMessage[0]) == MessageConstants.ID_MESG_IMAGE) {
+                        displayImage(receiveMessage, 3, (receiveMessage[1] << 8) + Util.uByte(receiveMessage[2]));
                     }
+
                     if (!mHoldingButton && !mAccelMovement) {
                         enableActions(true);
                     }
+
                     mCanSendCommands.set(true);
                 }
             }
@@ -125,14 +130,13 @@ public class MainActivity extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     enableAccelerometer(true);
-                    enableButtons(false);
-                    enableButtonListners(false);
+                    // TODO: only disable the movement buttons nicely
+                    enableButtons(mAllowActions);
                     return;
                 }
 
                 enableAccelerometer(false);
                 enableButtons(mAllowActions);
-                enableButtonListners(mAllowActions);
                 return;
             }
         });
@@ -210,6 +214,14 @@ public class MainActivity extends AppCompatActivity {
         mPictureView = (ImageView) findViewById(R.id.iv_picture);
         mPictureLoading = (ProgressBar) findViewById(R.id.icon_loading_picture);
         mTextNotConnected = (TextView) findViewById(R.id.text_not_connected);
+
+        mButtonArray = new FloatingActionButton[NUM_BUTTONS];
+        mButtonArray[0] =  (FloatingActionButton) findViewById(R.id.button_up);
+        mButtonArray[1] =  (FloatingActionButton) findViewById(R.id.button_down);
+        mButtonArray[2] =  (FloatingActionButton) findViewById(R.id.button_left);
+        mButtonArray[3] =  (FloatingActionButton) findViewById(R.id.button_right);
+        mButtonArray[4] =  (FloatingActionButton) findViewById(R.id.button_fire);
+        mButtonArray[5] =  (FloatingActionButton) findViewById(R.id.button_camera);
 
         toast = new AppToast(getApplicationContext());
         /////////////////////
@@ -440,7 +452,7 @@ public class MainActivity extends AppCompatActivity {
     //----------------------------------------------------------------------------------------------
     public void enableActions(boolean enable) {
         mAllowActions = enable;
-        enableButtons(enable ? !mAccelOnSwitch.isChecked() : false);
+        enableButtons(enable);
 
         for(int i = 0; i < mTabStrip.getChildCount(); i++) {
             mTabStrip.getChildAt(i).setAlpha(enable ? 1f : 0.3f);
@@ -450,9 +462,26 @@ public class MainActivity extends AppCompatActivity {
 
     //----------------------------------------------------------------------------------------------
     public void enableButtons(boolean enable) {
-        for (int i = 0; i < mButtonsArea.getChildCount(); i++) {
-            mButtonsArea.getChildAt(i).setAlpha(enable ? 1f : 0.3f);
-            mButtonsArea.getChildAt(i).setClickable(enable);
+        if (enable && mAccelOnSwitch.isChecked()) {
+            enableButtonListners(false);
+            // TODO: maybe a better way
+            // 0-3: movement, 4: fire, 5: camera
+            for (int i = 0; i < 4; i++) {
+                mButtonArray[i].setAlpha(0.3f);
+                mButtonArray[i].setClickable(false);
+            }
+            mButtonArray[4].setAlpha(1f);
+            mButtonArray[4].setClickable(true);
+            mButtonArray[5].setAlpha(1f);
+            mButtonArray[5].setClickable(true);
+            return;
+        }
+
+        // non-accelerometer mode
+        enableButtonListners(enable);
+        for (FloatingActionButton btn : mButtonArray) {
+            btn.setAlpha(enable ? 1f : 0.3f);
+            btn.setClickable(enable);
         }
     }
 
