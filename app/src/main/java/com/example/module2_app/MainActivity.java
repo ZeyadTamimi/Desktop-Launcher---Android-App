@@ -297,6 +297,7 @@ public class MainActivity extends AppCompatActivity {
         enableActions(false);
         enableAccelerometer(mAccelOnSwitch.isChecked());
 
+        // TODO: review this part!
         // communication thread
         if (State.btConnected()) {
             if (State.mmCommunicationThread == null) {
@@ -465,6 +466,7 @@ public class MainActivity extends AppCompatActivity {
             btn.setAlpha(enable ? 1f : 0.3f);
             btn.setClickable(enable);
         }
+        Log.i("ENABLE", String.valueOf(enable));
     }
 
     //----------------------------------------------------------------------------------------------
