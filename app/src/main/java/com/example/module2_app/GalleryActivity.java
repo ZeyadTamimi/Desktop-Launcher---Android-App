@@ -49,7 +49,7 @@ public class GalleryActivity extends AppCompatActivity {
         Log.i("debug","making list null");
         list = null;
         Log.i("debug","populating list");
-        list = imageReader( Environment.getExternalStoragePublicDirectory("Pictures"));
+        list = imageReader( Environment.getExternalStoragePublicDirectory("Pictures/DTR Photos"));
         Log.i("debug","list size = " +list.size());
         gridview = (GridView) findViewById(R.id.gridview);
         gridAdapter = new GridAdapter(this);

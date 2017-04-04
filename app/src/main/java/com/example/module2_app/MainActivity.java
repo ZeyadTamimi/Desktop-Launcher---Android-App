@@ -549,6 +549,8 @@ public class MainActivity extends AppCompatActivity {
                 case 3:
                     enableButtons(false);
                     mCurrentMode = ExecuteModeTask.ModeType.TRACKING;
+                    ViewFlipper vf = (ViewFlipper) findViewById( R.id.viewFlipper );
+                    vf.setDisplayedChild(vf.indexOfChild(findViewById(R.id.section_tracking)));
                     break;
                 default:
                     break;
