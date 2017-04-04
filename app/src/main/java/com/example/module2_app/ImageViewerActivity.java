@@ -25,7 +25,7 @@ public class ImageViewerActivity extends AppCompatActivity {
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_gallery);
+        setContentView(R.layout.activity_image_view);
         Toolbar myToolbar = (Toolbar) findViewById(R.id.image_toolbar);
         setSupportActionBar(myToolbar);
         ActionBar ab = getSupportActionBar();
@@ -39,8 +39,9 @@ public class ImageViewerActivity extends AppCompatActivity {
         iv.setImageURI(Uri.parse(f));
 
         iv.setOnTouchListener(new OnSwipeTouchListener(ImageViewerActivity.this) {
-
         });
+        Log.i("test","position = " + picPosition);
+        Log.i("test","size = " + size);
 
 
     }
