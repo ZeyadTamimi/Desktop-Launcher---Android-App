@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int Y_MAX_ANGLE = 30;
     private static final int NUM_BUTTONS = 6;
 
-    public static MainActivity reference;
+    public static MainActivity ref;
     public static AppToast toast;
     private String toastMessage = "";
 
@@ -71,37 +71,7 @@ public class MainActivity extends AppCompatActivity {
     private FloatingActionButton[] mButtonArray;
 
     // bluetooth communication handler
-    private Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case MessageConstants.MESSAGE_READ: {
-                    // TODO: Handle all types of messages
-                    // TODO: Size check
-                    byte[] receiveMessage = (byte[]) msg.obj;
-                    if (Util.uByte(receiveMessage[0]) == MessageConstants.ID_RESPONSE) {
-                        if (Util.uByte(receiveMessage[4]) == MessageConstants.RESPONSE_NO_ERROR) {
-                            toastMessage = "Command Successful!";
-                        }
-                        else if (Util.uByte(receiveMessage[4]) == MessageConstants.RESPONSE_NIOS_HANDSHAKE) {
-                            toastMessage = "Handshake!";
-                            State.heartBeatTimmer.cancel();
-                        }
-                        else {
-                            toastMessage = "Command: " + receiveMessage[2] + " failed with code: " + receiveMessage[3];
-                        }
-                        toast.out(toastMessage);
-                    }
-                    else if (Util.uByte(receiveMessage[0]) == MessageConstants.ID_MESG_IMAGE) {
-                        displayImage(receiveMessage, 3, (receiveMessage[1] << 8) + Util.uByte(receiveMessage[2]));
-                    }
-
-                    enableActions(!mHoldingButton && !mAccelMovement);
-                    mCanSendCommands.set(true);
-                }
-            }
-        }
-    };
+    private Handler mHandler;
 
     //---------------
     // STATE CHANGES
@@ -112,6 +82,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar myToolbar = (Toolbar) findViewById(R.id.activity_main_toolbar);
         setSupportActionBar(myToolbar);
+
+        ///////////////////////////
+        // Communication handler //
+        ///////////////////////////
+        mHandler = new CommunicationHandler();
 
         ///////////
         // Flags //
@@ -198,6 +173,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
         ///////////////////////////
         // UI Element References //
         ///////////////////////////
@@ -293,7 +269,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        reference = this;
+        ref = this;
         enableActions(false);
         enableAccelerometer(mAccelOnSwitch.isChecked());
 
@@ -335,7 +311,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onPause() {
         super.onPause();
-        reference = this;
+        ref = this;
 
         enableAccelerometer(false);
         if (mSendCommandTask != null)
@@ -480,6 +456,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //----------------------------------------------------------------------------------------------
+    private boolean getHoldingButton() { return mHoldingButton; }
+    private boolean getAccelMovment() { return mAccelMovement; }
+
+    //----------------------------------------------------------------------------------------------
     private class ButtonOnHoldListner implements View.OnTouchListener {
         SendCommandTask.CommandType mCmd;
 
@@ -511,5 +491,40 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
     }
+
+    //----------------------------------------------------------------------------------------------
+    private static class CommunicationHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MessageConstants.MESSAGE_READ: {
+                    // TODO: Handle all types of messages
+                    // TODO: Size check
+                    byte[] receiveMessage = (byte[]) msg.obj;
+                    if (Util.uByte(receiveMessage[0]) == MessageConstants.ID_RESPONSE) {
+                        if (Util.uByte(receiveMessage[4]) == MessageConstants.RESPONSE_NO_ERROR) {
+                            ref.toast.out("Command Successful!");
+                        }
+                        else if (Util.uByte(receiveMessage[4]) == MessageConstants.RESPONSE_NIOS_HANDSHAKE) {
+                            ref.toast.out("Handshake!");
+                            State.heartBeatTimmer.cancel();
+                        }
+                        else {
+                            ref.toast.out("Command: " + receiveMessage[2] +
+                                    " failed with code: " + receiveMessage[3]);
+                        }
+                    }
+                    else if (Util.uByte(receiveMessage[0]) == MessageConstants.ID_MESG_IMAGE) {
+                        ref.displayImage(receiveMessage, 3, (receiveMessage[1] << 8) + Util.uByte(receiveMessage[2]));
+                    }
+
+                    ref.enableActions(!ref.mHoldingButton && !ref.mAccelMovement);
+                    mCanSendCommands.set(true);
+                }
+            }
+        }
+    }
+
+    //----------------------------------------------------------------------------------------------
 }
 
