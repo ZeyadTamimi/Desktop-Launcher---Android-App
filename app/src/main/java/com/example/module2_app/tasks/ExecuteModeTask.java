@@ -8,6 +8,7 @@ import com.example.module2_app.MessageConstants;
 import com.example.module2_app.State;
 
 // TODO: when updating UI, disable buttons
+// TODO: refactor while(isCancelled()) to doInBackground
 public class ExecuteModeTask extends AsyncTask<ExecuteModeTask.ModeType, Void, Void> {
     public enum ModeType {
         MANUAL, AUTO, SECURITY, TRACKING;

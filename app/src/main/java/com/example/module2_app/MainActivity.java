@@ -533,10 +533,6 @@ public class MainActivity extends AppCompatActivity {
             toast.out(toastMessage);
             Log.i("TAB_POSITION", String.valueOf(tab.getPosition()));
 
-            if (mExecuteModeTask != null) {
-                mExecuteModeTask.cancel(false);
-            }
-
             mExecuteModeTask = new ExecuteModeTask(mHandler);
             switch (tab.getPosition()) {
                 case 0:
