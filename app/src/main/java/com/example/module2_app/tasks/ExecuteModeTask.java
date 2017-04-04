@@ -50,13 +50,19 @@ public class ExecuteModeTask extends AsyncTask<ExecuteModeTask.ModeType, Void, V
             if (!MainActivity.mCanSendCommands.get())
                 continue;
 
-            // TODO: movement
+            // TODO: can modify movement here
             MainActivity.mCanSendCommands.set(false);
             State.mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_RIGHT, 200000);
+
             while (!MainActivity.mCanSendCommands.get());
             MainActivity.mCanSendCommands.set(false);
-            // TODO: take picture and send message to MainActivity  to update UI
-            // MainActivity.ref.takePicture(); // this line will crash
+            mHandler.sendMessage(mHandler.obtainMessage(
+                    MessageConstants.MESSAGE_UI_UPDATE,
+                    MessageConstants.UI_UPDATE_LOADING_IMAGE,
+                    MessageConstants.TRUE));
+
+            // May need synchronization here but requesting image is slow so it's fine
+
             State.mmCommunicationThread.requestMessage(MessageConstants.ID_MESG_IMAGE);
         }
     }

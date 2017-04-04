@@ -313,6 +313,10 @@ public class MainActivity extends AppCompatActivity {
         ref = this;
 
         enableAccelerometer(false);
+
+        if (mExecuteModeTask != null)
+            mExecuteModeTask.cancel(false);
+
         if (mSendCommandTask != null)
             mSendCommandTask.cancel(false);
 
@@ -564,6 +568,8 @@ public class MainActivity extends AppCompatActivity {
         public void onTabReselected(TabLayout.Tab tab) {}
     }
 
+    // TODO: BUG if you switch manual -> auto -> manual really fast,
+    // actions will be enabled
     //----------------------------------------------------------------------------------------------
     private static class CommunicationHandler extends Handler {
         @Override
@@ -589,14 +595,22 @@ public class MainActivity extends AppCompatActivity {
                     else if (Util.uByte(receiveMessage[0]) == MessageConstants.ID_MESG_IMAGE) {
                         ref.displayImage(receiveMessage, 3, (receiveMessage[1] << 8) + Util.uByte(receiveMessage[2]));
                     }
+
+                    ref.enableActions(
+                            ref.mCurrentMode == ExecuteModeTask.ModeType.MANUAL &&
+                            !ref.mHoldingButton &&
+                            !ref.mAccelMovement
+                    );
+
+                    mCanSendCommands.set(true);
                     break;
 
-                case MessageConstants.MESSAGE_UPDATE_UI:
-
+                case MessageConstants.MESSAGE_UI_UPDATE:
+                    if (msg.arg1 == MessageConstants.UI_UPDATE_LOADING_IMAGE) {
+                        ref.showLoading(msg.arg2 == MessageConstants.TRUE);
+                    }
                     break;
             }
-            ref.enableActions(!ref.mHoldingButton && !ref.mAccelMovement);
-            mCanSendCommands.set(true);
         }
     }
 
