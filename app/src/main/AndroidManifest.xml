@@ -37,7 +37,7 @@
         <!-- A child of the main activity -->
         <activity
             android:screenOrientation="portrait"
-            android:name="com.example.module2_app.ImageViewActivity"
+            android:name="com.example.module2_app.GalleryActivity"
             android:label="@string/image_view_activity_label"
             android:parentActivityName="com.example.module2_app.MainActivity" >
 
@@ -46,6 +46,16 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.module2_app.MainActivity" />
         </activity>
+
+        <activity
+            android:name="com.example.module2_app.ImageViewerActivity"
+            android:label="@string/picture_activity_label">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.module2_app.GalleryActivity" />
+        </activity>
+
         <!-- A child of the main activity -->
         <activity
             android:screenOrientation="portrait"
