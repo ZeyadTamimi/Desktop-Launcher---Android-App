@@ -17,8 +17,10 @@ public class SettingsActivity extends AppCompatActivity {
 
     public Switch backup_switch;
     public SeekBar turret_speed_bar;
+    public SeekBar image_resolution_bar;
     public boolean backup_switch_state;
     public int turret_speed_bar_value;
+    public int image_resolution_bar_value;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,27 +34,34 @@ public class SettingsActivity extends AppCompatActivity {
 
         backup_switch = (Switch) findViewById(R.id.backup_switch);
         turret_speed_bar = (SeekBar) findViewById(R.id.turret_speed_bar);
+        image_resolution_bar = (SeekBar) findViewById(R.id.resolution_bar);
 
 
     }
     @Override
     public void onPause() {
         super.onPause();
-        Log.i("message","pausing settings");
+
         backup_switch_state = backup_switch.isChecked();
         turret_speed_bar_value = turret_speed_bar.getProgress();
+        image_resolution_bar_value = image_resolution_bar.getProgress();
+
         State.backup_switch_state = backup_switch_state;
         State.turret_speed_bar_value = turret_speed_bar_value;
+        State.image_resolution_bar_value = image_resolution_bar_value;
     }
 
     @Override
     public void onResume(){
         super.onResume();
-        Log.i("message","Resuming");
+
         backup_switch_state = State.backup_switch_state;
         turret_speed_bar_value = State.turret_speed_bar_value;
+        image_resolution_bar_value = State.image_resolution_bar_value;
+
         backup_switch.setChecked(backup_switch_state);
         turret_speed_bar.setProgress(turret_speed_bar_value);
+        image_resolution_bar.setProgress(image_resolution_bar_value);
 
     }
 
