@@ -4,14 +4,11 @@ import android.bluetooth.BluetoothSocket;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.provider.SyncStateContract;
 import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
-import com.example.module2_app.MessageConstants;
 
 public class CommunicationThread extends Thread {
     private static final String TAG = "MY_APP_DEBUG_TAG";
@@ -68,7 +65,7 @@ public class CommunicationThread extends Thread {
                 while (numBytes < messageSize + MessageConstants.SIZE_FIELD_HEADER)
                     numBytes += mmInStream.read(mmBuffer, numBytes, messageSize + MessageConstants.SIZE_FIELD_HEADER - numBytes);
                 // Send the obtained bytes to the UI activity.
-                Message readMsg = mHandler.obtainMessage(MessageConstants.MESSAGE_READ, messageSize, -1, mmBuffer);
+                Message readMsg = mHandler.obtainMessage(MessageConstants.MESSAGE_NIOS_RESPONSE, messageSize, -1, mmBuffer);
                 readMsg.sendToTarget();
             } catch (IOException e) {
                 Log.d(TAG, "Input stream was disconnected", e);

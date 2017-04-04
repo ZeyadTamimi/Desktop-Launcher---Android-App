@@ -49,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
     public static AppToast toast;
     private String toastMessage = "";
 
+    private ExecuteModeTask.ModeType mCurrentMode;
+    private AsyncTask<ExecuteModeTask.ModeType, Void, Void> mExecuteModeTask;
     private AsyncTask<SendCommandTask.CommandType, Void, Void> mSendCommandTask;
     public static AtomicBoolean mCanSendCommands;
     private boolean mHoldingButton, mAccelMovement;
@@ -208,40 +210,11 @@ public class MainActivity extends AppCompatActivity {
         ////////////////////
         // Mode Switching //
         ////////////////////
-        mTabLayout = (TabLayout) findViewById(R.id.tab_layout_modes);
-        mTabStrip = ((LinearLayout) mTabLayout.getChildAt(0));
-        mTabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                if (mAllowActions) {
-                    Log.i("test","switching tabs");
-                    if (tab.getText().toString().equals ("MANUAL")){
-                        Log.i("test","switching to manual");
-                        enableButtons(true);
-                        ViewFlipper vf = (ViewFlipper) findViewById( R.id.viewFlipper );
-                        vf.setDisplayedChild(vf.indexOfChild(findViewById(R.id.section_buttons)));
-                    }
-                    if(tab.getText().toString().equals("TRACKING")){
-                        Log.i("test","switching to tracking");
-                        ViewFlipper vf = (ViewFlipper) findViewById( R.id.viewFlipper );
-                        vf.setDisplayedChild(vf.indexOfChild(findViewById(R.id.section_tracking)));
+        mCurrentMode = ExecuteModeTask.ModeType.MANUAL;
 
-                    }
-                }
-                //toastMessage = tab.getText().toString();
-                //toast.out(toastMessage);
-                //if (mAllowActions) {
-                //    // TODO: hardcoded here
-                //    enableButtons(toastMessage.equals("MANUAL"));
-                //
-                //
-                //}
-            }
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {}
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {}
-        });
+        mTabLayout = (TabLayout) findViewById(R.id.tab_layout_modes);
+        mTabLayout.addOnTabSelectedListener(new ModeSelectedListener());
+        mTabStrip = ((LinearLayout) mTabLayout.getChildAt(0));
 
         ////////////////////////////////
         // Picture Frame Movement Tap //
@@ -369,6 +342,33 @@ public class MainActivity extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
+
+    //----------------------------------------------------------------------------------------------
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case GalleryActivity.MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
+    }
+
     //-----------------
     // Button Handlers
     //----------------------------------------------------------------------------------------------
@@ -419,13 +419,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //----------------------------------------------------------------------------------------------
-    private void fire() {
+    public void fire() {
         toast.out("FIRE");
         State.mmCommunicationThread.commandFire();
     }
 
     //----------------------------------------------------------------------------------------------
-    private void takePicture() {
+    public void takePicture() {
         toast.out("PICTURE");
         showLoading(true);
         State.mmCommunicationThread.requestMessage(MessageConstants.ID_MESG_IMAGE);
@@ -456,10 +456,13 @@ public class MainActivity extends AppCompatActivity {
         mAllowActions = enable;
         enableButtons(enable);
 
+        // TODO: commenting this out so we can switch modes
+        /*
         for(int i = 0; i < mTabStrip.getChildCount(); i++) {
             mTabStrip.getChildAt(i).setAlpha(enable ? 1f : 0.3f);
             mTabStrip.getChildAt(i).setClickable(enable);
         }
+        */
     }
 
     //----------------------------------------------------------------------------------------------
@@ -519,11 +522,56 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //----------------------------------------------------------------------------------------------
+    private class ModeSelectedListener implements TabLayout.OnTabSelectedListener {
+        @Override
+        public void onTabSelected(TabLayout.Tab tab) {
+            if (mExecuteModeTask != null) {
+                mExecuteModeTask.cancel(false);
+            }
+
+            toastMessage = tab.getText().toString();
+            toast.out(toastMessage);
+            Log.i("TAB_POSITION", String.valueOf(tab.getPosition()));
+
+            if (mExecuteModeTask != null) {
+                mExecuteModeTask.cancel(false);
+            }
+
+            mExecuteModeTask = new ExecuteModeTask(mHandler);
+            switch (tab.getPosition()) {
+                case 0:
+                    mCurrentMode = ExecuteModeTask.ModeType.MANUAL;
+                    break;
+                case 1:
+                    enableButtons(false);
+                    mCurrentMode = ExecuteModeTask.ModeType.AUTO;
+                    break;
+                case 2:
+                    enableButtons(false);
+                    mCurrentMode = ExecuteModeTask.ModeType.SECURITY;
+                    break;
+                case 3:
+                    enableButtons(false);
+                    mCurrentMode = ExecuteModeTask.ModeType.TRACKING;
+                    break;
+                default:
+                    break;
+            }
+
+            mExecuteModeTask.execute(mCurrentMode);
+        }
+        @Override
+        public void onTabUnselected(TabLayout.Tab tab) {}
+        @Override
+        public void onTabReselected(TabLayout.Tab tab) {}
+    }
+
+    //----------------------------------------------------------------------------------------------
     private static class CommunicationHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-                case MessageConstants.MESSAGE_READ: {
+                case MessageConstants.MESSAGE_NIOS_RESPONSE:
                     // TODO: Handle all types of messages
                     // TODO: Size check
                     byte[] receiveMessage = (byte[]) msg.obj;
@@ -543,36 +591,14 @@ public class MainActivity extends AppCompatActivity {
                     else if (Util.uByte(receiveMessage[0]) == MessageConstants.ID_MESG_IMAGE) {
                         ref.displayImage(receiveMessage, 3, (receiveMessage[1] << 8) + Util.uByte(receiveMessage[2]));
                     }
+                    break;
 
-                    ref.enableActions(!ref.mHoldingButton && !ref.mAccelMovement);
-                    mCanSendCommands.set(true);
-                }
+                case MessageConstants.MESSAGE_UPDATE_UI:
+
+                    break;
             }
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case GalleryActivity.MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
-
-                } else {
-
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                }
-                return;
-            }
-
-            // other 'case' lines to check for other
-            // permissions this app might request
+            ref.enableActions(!ref.mHoldingButton && !ref.mAccelMovement);
+            mCanSendCommands.set(true);
         }
     }
 
