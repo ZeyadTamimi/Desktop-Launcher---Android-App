@@ -363,16 +363,16 @@ public class MainActivity extends AppCompatActivity {
     //----------------------------------------------------------------------------------------------
     private void enableButtonListners(boolean enable) {
         findViewById(R.id.button_up).setOnTouchListener(
-                enable ? new ButtonOnHoldListner(SendCommandTask.CommandType.UP) : null
+                enable ? new ButtonOnHoldListener(SendCommandTask.CommandType.UP) : null
         );
         findViewById(R.id.button_down).setOnTouchListener(
-                enable ? new ButtonOnHoldListner(SendCommandTask.CommandType.DOWN) : null
+                enable ? new ButtonOnHoldListener(SendCommandTask.CommandType.DOWN) : null
         );
         findViewById(R.id.button_left).setOnTouchListener(
-                enable ? new ButtonOnHoldListner(SendCommandTask.CommandType.LEFT) : null
+                enable ? new ButtonOnHoldListener(SendCommandTask.CommandType.LEFT) : null
         );
         findViewById(R.id.button_right).setOnTouchListener(
-                enable ? new ButtonOnHoldListner(SendCommandTask.CommandType.RIGHT) : null
+                enable ? new ButtonOnHoldListener(SendCommandTask.CommandType.RIGHT) : null
         );
     }
 
@@ -460,10 +460,10 @@ public class MainActivity extends AppCompatActivity {
     private boolean getAccelMovment() { return mAccelMovement; }
 
     //----------------------------------------------------------------------------------------------
-    private class ButtonOnHoldListner implements View.OnTouchListener {
+    private class ButtonOnHoldListener implements View.OnTouchListener {
         SendCommandTask.CommandType mCmd;
 
-        public ButtonOnHoldListner(SendCommandTask.CommandType cmd) {
+        public ButtonOnHoldListener(SendCommandTask.CommandType cmd) {
             mCmd = cmd;
         }
 
