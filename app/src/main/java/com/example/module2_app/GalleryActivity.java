@@ -36,16 +36,21 @@ public class GalleryActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
 
 
-
+        Log.i("debug","entering gallery");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gallery);
         Toolbar myToolbar = (Toolbar) findViewById(R.id.activity_gallery_toolbar);
         setSupportActionBar(myToolbar);
         ActionBar ab = getSupportActionBar();
         ab.setDisplayHomeAsUpEnabled(true);
-        //list = new ArrayList<>(imageReader( Environment.getExternalStoragePublicDirectory("Pictures/DTR Photos")));
-        list = imageReader( Environment.getExternalStoragePublicDirectory("Pictures/DTR Photos"));
+        //list = new ArrayList<File>();
+        //list = imageReader( Environment.getExternalStoragePublicDirectory("Pictures"));
 
+        Log.i("debug","making list null");
+        list = null;
+        Log.i("debug","populating list");
+        list = imageReader( Environment.getExternalStoragePublicDirectory("Pictures"));
+        Log.i("debug","list size = " +list.size());
         gridview = (GridView) findViewById(R.id.gridview);
         gridAdapter = new GridAdapter(this);
         gridview.setAdapter(gridAdapter);
@@ -78,6 +83,7 @@ public class GalleryActivity extends AppCompatActivity {
         }
 
         File[] files = root.listFiles();
+        Log.i("debug","file array length = " + files.length);
         for(int i = 0; i<files.length; i++){
             if(files[i].isDirectory()) {
                 a.addAll(imageReader(files[i]));
@@ -106,7 +112,8 @@ public class GalleryActivity extends AppCompatActivity {
         super.onDestroy();
         //gridview.getAdapter().notifyDataSetChanged();
         list.clear();
-        Log.i("hello","size = " +list.size());
+        Log.i("debug","destroying gallery");
+        Log.i("debug","size = " +list.size());
     }
 
     public class GridAdapter extends BaseAdapter {
@@ -140,15 +147,15 @@ public class GalleryActivity extends AppCompatActivity {
         public View getView(int position, View convertView, ViewGroup parent){
 
             ImageView myImageView;
-            if (convertView != null)
-                myImageView = (ImageView) convertView;
-            else {
+            //if (convertView != null)
+            //    myImageView = (ImageView) convertView;
+            //else {
                 myImageView = new ImageView(context);
                 myImageView.setLayoutParams(new GridView.LayoutParams(350, 250));
                 myImageView.setAdjustViewBounds(false);
                 myImageView.setScaleType(ImageView.ScaleType.FIT_START);
 
-            }
+            //}
             myImageView.setImageURI(Uri.parse(getItem(position).toString()));
             return myImageView;
         }

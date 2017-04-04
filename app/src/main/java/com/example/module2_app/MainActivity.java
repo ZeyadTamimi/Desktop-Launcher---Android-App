@@ -28,6 +28,7 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.ViewFlipper;
 
 import java.io.ByteArrayInputStream;
 import java.util.Timer;
@@ -81,8 +82,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        ViewFlipper vf = (ViewFlipper) findViewById( R.id.viewFlipper );
+        vf.setDisplayedChild(vf.indexOfChild(findViewById(R.id.section_buttons)));
+
         Toolbar myToolbar = (Toolbar) findViewById(R.id.activity_main_toolbar);
         setSupportActionBar(myToolbar);
+
+
+
 
         ///////////////////////////
         // Communication handler //
@@ -205,12 +213,29 @@ public class MainActivity extends AppCompatActivity {
         mTabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                toastMessage = tab.getText().toString();
-                toast.out(toastMessage);
                 if (mAllowActions) {
-                    // TODO: hardcoded here
-                    enableButtons(toastMessage.equals("MANUAL"));
+                    Log.i("test","switching tabs");
+                    if (tab.getText().toString().equals ("MANUAL")){
+                        Log.i("test","switching to manual");
+                        enableButtons(true);
+                        ViewFlipper vf = (ViewFlipper) findViewById( R.id.viewFlipper );
+                        vf.setDisplayedChild(vf.indexOfChild(findViewById(R.id.section_buttons)));
+                    }
+                    if(tab.getText().toString().equals("TRACKING")){
+                        Log.i("test","switching to tracking");
+                        ViewFlipper vf = (ViewFlipper) findViewById( R.id.viewFlipper );
+                        vf.setDisplayedChild(vf.indexOfChild(findViewById(R.id.section_tracking)));
+
+                    }
                 }
+                //toastMessage = tab.getText().toString();
+                //toast.out(toastMessage);
+                //if (mAllowActions) {
+                //    // TODO: hardcoded here
+                //    enableButtons(toastMessage.equals("MANUAL"));
+                //
+                //
+                //}
             }
             @Override
             public void onTabUnselected(TabLayout.Tab tab) {}
