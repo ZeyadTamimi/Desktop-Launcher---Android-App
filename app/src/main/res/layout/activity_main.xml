@@ -213,13 +213,13 @@
             android:elevation="10dp">
 
             <Button
-                android:id="@+id/button"
+                android:id="@+id/button_tracking"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
                 android:layout_centerVertical="true"
                 android:onClick="buttonPress"
-                android:text="Start Tracking" />
+                android:text="@string/tracking_enable" />
         </RelativeLayout>
 
     </ViewFlipper>

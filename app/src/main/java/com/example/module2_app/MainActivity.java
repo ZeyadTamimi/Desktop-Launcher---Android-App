@@ -30,7 +30,6 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -99,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     // Tracking Setup
-
+    private boolean             mTrackingEnabled = false;
     // OpenCV Stuff
     private boolean              mIsColorSelected = false;
     private Mat mRgba;
@@ -256,7 +255,7 @@ public class MainActivity extends AppCompatActivity {
         mPictureLoading = (ProgressBar) findViewById(R.id.icon_loading_picture);
         mTextNotConnected = (TextView) findViewById(R.id.text_not_connected);
         // TODO Update the button name
-        mTrackingButton = (Button) findViewById(R.id.button);
+        mTrackingButton = (Button) findViewById(R.id.button_tracking);
         mTrackingButton.setEnabled(false);
 
         mButtonArray = new FloatingActionButton[NUM_BUTTONS];
@@ -298,6 +297,10 @@ public class MainActivity extends AppCompatActivity {
                     processImageMoveTouch(x, y);
                     return true;
                 }
+
+                // Stop processing user inputs if tracking is disabled
+                if (mTrackingEnabled)
+                    return false;
 
                 // TODO assert that we are in tracking mode tab!
                 if (savedImageName == null) {
@@ -459,8 +462,8 @@ public class MainActivity extends AppCompatActivity {
             case R.id.button_camera:
                 takePicture();
                 break;
-            case R.id.button:
-                enableTracking();
+            case R.id.button_tracking:
+                toggleTracking();
                 break;
             default:
                 break;
@@ -501,8 +504,17 @@ public class MainActivity extends AppCompatActivity {
 
 
     //----------------------------------------------------------------------------------------------
-    private void enableTracking() {
-        mExecuteModeTask.execute(ExecuteModeTask.ModeType.TRACKING);
+    private void toggleTracking() {
+        if (!mTrackingEnabled) {
+            mExecuteModeTask.execute(ExecuteModeTask.ModeType.TRACKING);
+            mTrackingButton.setText(getString(R.string.tracking_disable));
+            mTrackingEnabled = true;
+        }
+        else {
+            mTrackingButton.setText(getString(R.string.tracking_enable));
+            mExecuteModeTask.cancel(false);
+            mTrackingEnabled = false;
+        }
     }
 
     //----------------------------------------------------------------------------------------------
@@ -523,11 +535,17 @@ public class MainActivity extends AppCompatActivity {
         showLoading(false);
         ByteArrayInputStream in = new ByteArrayInputStream(byteArray, offset, size);
         Bitmap bitmap = BitmapFactory.decodeStream(in);
+        // At this point if the image data is so corrupted that the markers are messed up the bimap
+        // can be null
+        if (bitmap == null)
+            return;
+
         mPictureView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, mPictureView.getWidth(), mPictureView.getHeight(), false));
         if (!State.backup_switch_state)
             savedImageName = Util.saveImage(byteArray, offset, size);
 
-        // TODO when switching from tracking to another mode, the last track will be off cause this wont run!!!
+        // Note: when switching from tracking to another mode, the last track will be off cause this
+        // wont run!!!
         if (mCurrentMode == ExecuteModeTask.ModeType.TRACKING) {
             if (processSavedImage())
                 displayImageFileName(mTrackingImageViewFileName);
@@ -727,7 +745,8 @@ public class MainActivity extends AppCompatActivity {
         int width = mPictureView.getWidth();
         int height = mPictureView.getHeight();
         int x_relative = x - width/2;
-        int y_relative = y - height/2;
+        // This is because y increases as you go lower on the screen
+        int y_relative = (height - y) - height/2;
         int x_factor = width/2/X_MAX_ANGLE;
         int y_factor = height/2/Y_MAX_ANGLE;
         int x_angle = x_relative/x_factor;

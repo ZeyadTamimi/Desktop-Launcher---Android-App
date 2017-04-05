@@ -90,15 +90,17 @@ public class ExecuteModeTask extends AsyncTask<ExecuteModeTask.ModeType, Void, V
             MainActivity.mCanSendCommands.set(false);
             // First we request that the NIOS II send us the image
             State.mmCommunicationThread.requestMessage(MessageConstants.ID_MESG_IMAGE);
-            // TODO Send the gui a message to display the fucking loading screen
+            // TODO Send the gui a message to display the loading screen
             while(!MainActivity.mCanSendCommands.get());
             // TODO Verify that we received the correct response
 
+            if (MainActivity.mTrackedBlobCenter == null)
+                continue;
             // Grab the point and calculate the angle to rotate
             int width = 320;
             int height = 240;
             int x_relative = (int) (MainActivity.mTrackedBlobCenter.x - width/2);
-            int y_relative = (int) (MainActivity.mTrackedBlobCenter.y - height/2);
+            int y_relative = (int) ((height - MainActivity.mTrackedBlobCenter.y) - height/2);
 
             int x_factor = width/2/MainActivity.X_MAX_ANGLE;
             int y_factor = height/2/MainActivity.Y_MAX_ANGLE;
@@ -111,6 +113,8 @@ public class ExecuteModeTask extends AsyncTask<ExecuteModeTask.ModeType, Void, V
                 MainActivity.mCanSendCommands.set(false);
                 State.mmCommunicationThread.commandMoveAngle(x_angle, y_angle);
             }
+
+            MainActivity.mTrackedBlobCenter = null;
         }
 
     }
