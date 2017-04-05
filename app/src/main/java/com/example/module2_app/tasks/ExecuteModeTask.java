@@ -88,7 +88,29 @@ public class ExecuteModeTask extends AsyncTask<ExecuteModeTask.ModeType, Void, V
                 continue;
 
             MainActivity.mCanSendCommands.set(false);
-            // TODO: do tracking stuff
+            // First we request that the NIOS II send us the image
+            State.mmCommunicationThread.requestMessage(MessageConstants.ID_MESG_IMAGE);
+            // TODO Send the gui a message to display the fucking loading screen
+            while(!MainActivity.mCanSendCommands.get());
+            // TODO Verify that we received the correct response
+
+            // Grab the point and calculate the angle to rotate
+            int width = 320;
+            int height = 240;
+            int x_relative = (int) (MainActivity.mTrackedBlobCenter.x - width/2);
+            int y_relative = (int) (MainActivity.mTrackedBlobCenter.y - height/2);
+
+            int x_factor = width/2/MainActivity.X_MAX_ANGLE;
+            int y_factor = height/2/MainActivity.Y_MAX_ANGLE;
+            int x_angle = x_relative/x_factor;
+            int y_angle = y_relative/y_factor;
+
+
+            // Get the smallest angle to the point we wish to track.
+            if (x_angle <= 127 && x_angle >= -128 && y_angle <= 127 && y_angle >= -128) {
+                MainActivity.mCanSendCommands.set(false);
+                State.mmCommunicationThread.commandMoveAngle(x_angle, y_angle);
+            }
         }
 
     }
