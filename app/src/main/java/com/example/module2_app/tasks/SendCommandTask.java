@@ -9,7 +9,7 @@ import com.example.module2_app.State;
 public class SendCommandTask extends AsyncTask<SendCommandTask.CommandType, Void, Void> {
 
     public enum CommandType {
-        UP, DOWN, LEFT, RIGHT, FIRE;
+        UP, DOWN, LEFT, RIGHT, REST;
     }
 
     @Override
@@ -33,8 +33,8 @@ public class SendCommandTask extends AsyncTask<SendCommandTask.CommandType, Void
                 case RIGHT:
                     State.mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_RIGHT, 100000);
                     break;
-                case FIRE:
-                    State.mmCommunicationThread.commandFire();
+                default:
+                    MainActivity.mCanSendCommands.set(true);
                     break;
             }
 

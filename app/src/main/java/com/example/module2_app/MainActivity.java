@@ -70,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
     private String toastMessage = "";
 
     private ExecuteModeTask.ModeType mCurrentMode;
+    private SendCommandTask.CommandType mLastAccelCommand;
     private AsyncTask<ExecuteModeTask.ModeType, Void, Void> mExecuteModeTask;
     private AsyncTask<SendCommandTask.CommandType, Void, Void> mSendCommandTask;
     public static AtomicBoolean mCanSendCommands;
@@ -176,14 +177,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 enableAccelerometer(isChecked);
-                enableButtons(mAllowActions);
             }
         });
 
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-        // TODO: FIX THIS - if user skips onRest, mAccelMovement doesn't get released
+
+        mLastAccelCommand = SendCommandTask.CommandType.REST;
+
+        // TODO: refactor the else if for switching between 2 directions
         mDirectionDetector = new DirectionDetector(new DirectionDetector.OnDirectionChangeListener() {
             @Override
             public void onRest() {
@@ -192,6 +195,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.i("Fire", "CANCEL_TASK");
                     toast.out("release");
                     mAccelMovement = false;
+                    mLastAccelCommand = SendCommandTask.CommandType.REST;
                     if (mSendCommandTask != null) {
                         mSendCommandTask.cancel(false);
                     }
@@ -205,6 +209,15 @@ public class MainActivity extends AppCompatActivity {
                     Log.i("START_TASK", "UP");
                     enableActions(false);
                     mAccelMovement = true;
+                    mLastAccelCommand = SendCommandTask.CommandType.UP;
+                    mSendCommandTask = new SendCommandTask();
+                    mSendCommandTask.execute(SendCommandTask.CommandType.UP);
+                }
+                else if (mAccelMovement && mLastAccelCommand != SendCommandTask.CommandType.UP) {
+                    if (mSendCommandTask != null) {
+                        mSendCommandTask.cancel(false);
+                    }
+                    mLastAccelCommand = SendCommandTask.CommandType.UP;
                     mSendCommandTask = new SendCommandTask();
                     mSendCommandTask.execute(SendCommandTask.CommandType.UP);
                 }
@@ -217,6 +230,15 @@ public class MainActivity extends AppCompatActivity {
                     Log.i("START_TASK", "DOWN");
                     enableActions(false);
                     mAccelMovement = true;
+                    mLastAccelCommand = SendCommandTask.CommandType.DOWN;
+                    mSendCommandTask = new SendCommandTask();
+                    mSendCommandTask.execute(SendCommandTask.CommandType.DOWN);
+                }
+                else if (mAccelMovement && mLastAccelCommand != SendCommandTask.CommandType.DOWN) {
+                    if (mSendCommandTask != null) {
+                        mSendCommandTask.cancel(false);
+                    }
+                    mLastAccelCommand = SendCommandTask.CommandType.DOWN;
                     mSendCommandTask = new SendCommandTask();
                     mSendCommandTask.execute(SendCommandTask.CommandType.DOWN);
                 }
@@ -229,6 +251,15 @@ public class MainActivity extends AppCompatActivity {
                     Log.i("START_TASK", "LEFT");
                     enableActions(false);
                     mAccelMovement = true;
+                    mLastAccelCommand = SendCommandTask.CommandType.LEFT;
+                    mSendCommandTask = new SendCommandTask();
+                    mSendCommandTask.execute(SendCommandTask.CommandType.LEFT);
+                }
+                else if (mAccelMovement && mLastAccelCommand != SendCommandTask.CommandType.LEFT) {
+                    if (mSendCommandTask != null) {
+                        mSendCommandTask.cancel(false);
+                    }
+                    mLastAccelCommand = SendCommandTask.CommandType.LEFT;
                     mSendCommandTask = new SendCommandTask();
                     mSendCommandTask.execute(SendCommandTask.CommandType.LEFT);
                 }
@@ -241,6 +272,15 @@ public class MainActivity extends AppCompatActivity {
                     Log.i("START_TASK", "RIGHT");
                     enableActions(false);
                     mAccelMovement = true;
+                    mLastAccelCommand = SendCommandTask.CommandType.RIGHT;
+                    mSendCommandTask = new SendCommandTask();
+                    mSendCommandTask.execute(SendCommandTask.CommandType.RIGHT);
+                }
+                else if (mAccelMovement && mLastAccelCommand != SendCommandTask.CommandType.RIGHT) {
+                    if (mSendCommandTask != null) {
+                        mSendCommandTask.cancel(false);
+                    }
+                    mLastAccelCommand = SendCommandTask.CommandType.RIGHT;
                     mSendCommandTask = new SendCommandTask();
                     mSendCommandTask.execute(SendCommandTask.CommandType.RIGHT);
                 }
@@ -516,13 +556,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //----------------------------------------------------------------------------------------------
-    public void fire() {
+    private void fire() {
         toast.out("FIRE");
         State.mmCommunicationThread.commandFire();
     }
 
     //----------------------------------------------------------------------------------------------
-    public void takePicture() {
+    private void takePicture() {
         toast.out("PICTURE");
         showLoading(true);
         State.mmCommunicationThread.requestMessage(MessageConstants.ID_MESG_IMAGE);
@@ -571,13 +611,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     //----------------------------------------------------------------------------------------------
-    public void enableActions(boolean enable) {
+    private void enableActions(boolean enable) {
         mAllowActions = enable;
         enableButtons(enable);
     }
 
     //----------------------------------------------------------------------------------------------
-    public void enableButtons(boolean enable) {
+    private void enableButtons(boolean enable) {
         for (FloatingActionButton btn : mButtonArray) {
             btn.setAlpha(enable ? 1f : 0.3f);
             btn.setClickable(enable);
