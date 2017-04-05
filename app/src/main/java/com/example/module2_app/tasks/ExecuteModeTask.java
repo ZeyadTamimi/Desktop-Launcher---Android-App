@@ -88,9 +88,13 @@ public class ExecuteModeTask extends AsyncTask<ExecuteModeTask.ModeType, Void, V
                 continue;
 
             MainActivity.mCanSendCommands.set(false);
+            mHandler.sendMessage(mHandler.obtainMessage(
+                    MessageConstants.MESSAGE_UI_UPDATE,
+                    MessageConstants.UI_UPDATE_LOADING_IMAGE,
+                    MessageConstants.TRUE));
             // First we request that the NIOS II send us the image
             State.mmCommunicationThread.requestMessage(MessageConstants.ID_MESG_IMAGE);
-            // TODO Send the gui a message to display the loading screen
+
             while(!MainActivity.mCanSendCommands.get());
             // TODO Verify that we received the correct response
 

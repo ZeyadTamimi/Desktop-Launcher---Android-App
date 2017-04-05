@@ -683,6 +683,11 @@ public class MainActivity extends AppCompatActivity {
                         toast.out("Please enable photo backup to enable this feature!");
                         break;
                     }
+
+                    if (savedImageName == null) {
+                        enableActions(false);
+                        takePicture();
+                    }
                     enableButtons(false);
                     mCurrentMode = ExecuteModeTask.ModeType.TRACKING;
                     vf.setDisplayedChild(vf.indexOfChild(findViewById(R.id.section_tracking)));

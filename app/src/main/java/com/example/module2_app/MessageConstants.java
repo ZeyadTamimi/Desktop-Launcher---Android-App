@@ -30,6 +30,7 @@ public interface MessageConstants {
     public static final int ID_RESPONSE = 0xAA;
     public static final int ID_REQUEST = 0xF1;
     public static final int ID_MESG_IMAGE = 0xF2;
+    public static final int ID_MESG_MOTION = 0xF3;
 
 
     // Field Sizes
