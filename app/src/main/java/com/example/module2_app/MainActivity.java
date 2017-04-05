@@ -535,7 +535,8 @@ public class MainActivity extends AppCompatActivity {
             if (x_angle <= 127 && x_angle >= -128 && y_angle <= 127 && y_angle >= -128) {
                 enableActions(false);
                 State.mmCommunicationThread.commandMoveAngle(x_angle, y_angle);
-                // TODO: add this back after calibrating angles
+                // TODO: if we want to take a picture, need to synchronize
+                //       but we can't do this on the GUI thread
                 // takePicture();
             }
         }
