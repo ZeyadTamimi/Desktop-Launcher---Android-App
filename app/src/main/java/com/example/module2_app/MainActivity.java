@@ -56,8 +56,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.opencv.imgcodecs.Imgcodecs.imread;
 
-// TODO: fix positioning of accel switch
-// TODO: fix logic of when to display buttons when to not display buttons
 public class MainActivity extends AppCompatActivity {
     //--------
     // FIELDS
@@ -256,7 +254,6 @@ public class MainActivity extends AppCompatActivity {
         mPictureView = (ImageView) findViewById(R.id.iv_picture);
         mPictureLoading = (ProgressBar) findViewById(R.id.icon_loading_picture);
         mTextNotConnected = (TextView) findViewById(R.id.text_not_connected);
-        // TODO Update the button name
         mTrackingButton = (Button) findViewById(R.id.button_tracking);
         mTrackingButton.setEnabled(false);
 
@@ -577,14 +574,6 @@ public class MainActivity extends AppCompatActivity {
     public void enableActions(boolean enable) {
         mAllowActions = enable;
         enableButtons(enable);
-
-        // TODO: commenting this out so we can switch modes
-        /*
-        for(int i = 0; i < mTabStrip.getChildCount(); i++) {
-            mTabStrip.getChildAt(i).setAlpha(enable ? 1f : 0.3f);
-            mTabStrip.getChildAt(i).setClickable(enable);
-        }
-        */
     }
 
     //----------------------------------------------------------------------------------------------
