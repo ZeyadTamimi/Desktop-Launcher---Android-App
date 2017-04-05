@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
     private AsyncTask<ExecuteModeTask.ModeType, Void, Void> mExecuteModeTask;
     private AsyncTask<SendCommandTask.CommandType, Void, Void> mSendCommandTask;
     public static AtomicBoolean mCanSendCommands;
-    private boolean mHoldingButton, mAccelMovement;
+    private boolean mHoldingButton, mAccelMovement, mDetectedMotion;
     // NOTE: this is modified through enableActions()
     //       read this value to see if we can click buttons / switch modes
     private boolean mAllowActions;
@@ -608,9 +608,16 @@ public class MainActivity extends AppCompatActivity {
             mSensorManager.registerListener(mDirectionDetector, mMagnetometer, SensorManager.SENSOR_DELAY_NORMAL);
         }
         else {
+
+            if (mSendCommandTask != null) {
+                mSendCommandTask.cancel(false);
+            }
+            mAccelMovement = false;
+
             mSensorManager.unregisterListener(mDirectionDetector);
         }
     }
+
     //----------------------------------------------------------------------------------------------
     private void enableActions(boolean enable) {
         mAllowActions = enable;
@@ -637,8 +644,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //----------------------------------------------------------------------------------------------
-    private boolean getHoldingButton() { return mHoldingButton; }
-    private boolean getAccelMovment() { return mAccelMovement; }
+    public boolean getHoldingButton() { return mHoldingButton; }
+    public boolean getAccelMovment() { return mAccelMovement; }
+    public boolean getDetectedMotion() { return mDetectedMotion; }
 
     //----------------------------------------------------------------------------------------------
     private class ButtonOnHoldListener implements View.OnTouchListener {
@@ -761,6 +769,9 @@ public class MainActivity extends AppCompatActivity {
                     }
                     else if (Util.uByte(receiveMessage[0]) == MessageConstants.ID_MESG_IMAGE) {
                         ref.displayImageByteArray(receiveMessage, 3, (receiveMessage[1] << 8) + Util.uByte(receiveMessage[2]));
+                    }
+                    else if (Util.uByte(receiveMessage[0]) == MessageConstants.ID_MESG_MOTION) {
+                        ref.mDetectedMotion = (receiveMessage[3] == 0x01);
                     }
 
                     // TODO Make this more robust as discussed

@@ -72,12 +72,20 @@ public class ExecuteModeTask extends AsyncTask<ExecuteModeTask.ModeType, Void, V
                 continue;
 
             MainActivity.mCanSendCommands.set(false);
-            // TODO: finish
-            // if (State.mmCommunicationThread.commandPollMovement()) {
-                // MainActivity.ref.fire();
-                // while (!MainActivity.mCanSendCommands.get());
-                // MainActivity.ref.takePicture();
-            // }
+            State.mmCommunicationThread.requestMessage(MessageConstants.ID_MESG_MOTION);
+            while (!MainActivity.mCanSendCommands.get());
+            if (MainActivity.ref.getDetectedMotion()) {
+                MainActivity.mCanSendCommands.set(false);
+                State.mmCommunicationThread.commandFire();
+
+                while (!MainActivity.mCanSendCommands.get());
+                MainActivity.mCanSendCommands.set(false);
+                mHandler.sendMessage(mHandler.obtainMessage(
+                        MessageConstants.MESSAGE_UI_UPDATE,
+                        MessageConstants.UI_UPDATE_LOADING_IMAGE,
+                        MessageConstants.TRUE));
+                State.mmCommunicationThread.requestMessage(MessageConstants.ID_MESG_IMAGE);
+            }
         }
     }
 
