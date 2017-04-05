@@ -1,67 +1,105 @@
 package com.example.module2_app;
 
 import android.Manifest;
+import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.content.Intent;
-import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.util.SparseBooleanArray;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.BaseAdapter;
-import android.widget.Gallery;
+import android.widget.CheckBox;
 import android.widget.GridView;
-import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.widget.ImageView;
-import android.content.Context;
+import android.widget.ListView;
 
 import java.io.File;
 import java.util.ArrayList;
 
 public class GalleryActivity extends AppCompatActivity {
-    public static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 1;
+    public static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 2;
     public static GridView gridview;
     public static ArrayList<File> list;
+    public static boolean[] list_selection;
     public static GridAdapter gridAdapter;
+    public static int picsSelected;
+    public static SparseBooleanArray checkArray;
     @Override
     public void onCreate(Bundle savedInstanceState) {
 
-
-        Log.i("debug","entering gallery");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gallery);
         Toolbar myToolbar = (Toolbar) findViewById(R.id.activity_gallery_toolbar);
         setSupportActionBar(myToolbar);
         ActionBar ab = getSupportActionBar();
         ab.setDisplayHomeAsUpEnabled(true);
-        //list = new ArrayList<File>();
-        //list = imageReader( Environment.getExternalStoragePublicDirectory("Pictures"));
 
-        Log.i("debug","making list null");
+
+
         list = null;
-        Log.i("debug","populating list");
         list = imageReader( Environment.getExternalStoragePublicDirectory("Pictures/DTR Photos"));
-        Log.i("debug","list size = " +list.size());
+        list_selection = new boolean[list.size()];
+
         gridview = (GridView) findViewById(R.id.gridview);
+        checkArray = gridview.getCheckedItemPositions();
+        gridview.setChoiceMode(GridView.CHOICE_MODE_NONE);
+
         gridAdapter = new GridAdapter(this);
         gridview.setAdapter(gridAdapter);
 
+
+        picsSelected = 0;
+
+        gridview.setOnItemLongClickListener(new OnItemLongClickListener(){
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+
+                if ( gridview.getChoiceMode()==GridView.CHOICE_MODE_NONE){ //none are currently checked
+                    gridview.setChoiceMode(GridView.CHOICE_MODE_MULTIPLE);//enter check mode
+                    gridview.setItemChecked(position,true); //check current box
+                    checkArray = gridview.getCheckedItemPositions();
+                    gridAdapter.notifyDataSetChanged();
+                    return true; //not on click
+                }
+                gridAdapter.notifyDataSetChanged();
+                return false; //on click
+
+            }
+        });
+
+
         gridview.setOnItemClickListener(new OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-
-
-                startActivity( new  Intent(getApplicationContext(), ImageViewerActivity.class)
-                        .putExtra("img",list.get(position).toString())
-                        .putExtra("pos",position));
+                Log.i("checkarray","checkarray = "+checkArray);
+                if ( gridview.getChoiceMode()==GridView.CHOICE_MODE_NONE) {
+                    gridview.setChoiceMode(GridView.CHOICE_MODE_NONE);
+                    gridAdapter.notifyDataSetChanged();
+                    startActivity(new Intent(getApplicationContext(), ImageViewerActivity.class)
+                            .putExtra("img", list.get(position).toString())
+                            .putExtra("pos", position));
+                }
+                else if(gridview.getCheckedItemCount()==0){ //you just unchecked the last box
+                    gridview.setChoiceMode(GridView.CHOICE_MODE_NONE); //return to non check mode
+                    gridAdapter.notifyDataSetChanged();
+                }
+                gridAdapter.notifyDataSetChanged();
 
 
             }
@@ -83,7 +121,7 @@ public class GalleryActivity extends AppCompatActivity {
         }
 
         File[] files = root.listFiles();
-        Log.i("debug","file array length = " + files.length);
+
         for(int i = 0; i<files.length; i++){
             if(files[i].isDirectory()) {
                 a.addAll(imageReader(files[i]));
@@ -108,19 +146,35 @@ public class GalleryActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onDestroy(){
-        super.onDestroy();
-        //gridview.getAdapter().notifyDataSetChanged();
-        list.clear();
-        Log.i("debug","destroying gallery");
-        Log.i("debug","size = " +list.size());
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.action_delete:
+
+                if(gridview.getChoiceMode()==GridView.CHOICE_MODE_MULTIPLE) { //if multiple select
+                    SparseBooleanArray backup = gridview.getCheckedItemPositions();
+
+                    for (int i = 0; i < list.size(); i++) {
+                        Log.i("checkarray","checkarray = "+i);
+                        if (checkArray.get(i)) {
+                            gridAdapter.removeImage(i);
+                            i--;
+                        }
+                    }
+                    Log.i("checkarray","checkarray = "+checkArray);
+                    gridview.setChoiceMode(GridView.CHOICE_MODE_NONE);
+
+                }
+                break;
+        }
+        return true;
     }
 
     public class GridAdapter extends BaseAdapter {
-        Context context;
+        Context mContext;
         public GridAdapter(Context context)
         {
-            this.context = context;
+            mContext = context;
         }
 
         @Override
@@ -128,7 +182,7 @@ public class GalleryActivity extends AppCompatActivity {
             if (list == null) {
                 return 0;
             }
-            Log.i("hello", "list size = " +list.size());
+
             return list.size();
 
         }
@@ -143,32 +197,61 @@ public class GalleryActivity extends AppCompatActivity {
         }
 
 
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent){
+        public View getView(int position, View convertView, ViewGroup parent) {
+            ImageView imageView;
+            CheckBox checkBox;
+            if (convertView == null) {
+                LayoutInflater layoutInflater = LayoutInflater.from(mContext);
+                convertView = layoutInflater.inflate(R.layout.image, parent, false);
+            }
+            imageView = (ImageView) convertView.findViewById(R.id.imageView);
+            checkBox = (CheckBox) convertView.findViewById(R.id.checkBox);
 
-            ImageView myImageView;
-            //if (convertView != null)
-            //    myImageView = (ImageView) convertView;
-            //else {
-                myImageView = new ImageView(context);
-                myImageView.setLayoutParams(new GridView.LayoutParams(350, 250));
-                myImageView.setAdjustViewBounds(false);
-                myImageView.setScaleType(ImageView.ScaleType.FIT_START);
+            if (gridview.getChoiceMode() == ListView.CHOICE_MODE_MULTIPLE) {
 
-            //}
-            myImageView.setImageURI(Uri.parse(getItem(position).toString()));
-            return myImageView;
+                checkBox.setChecked(false);
+                checkBox.setAlpha(1);
+                if (checkArray != null) {
+                    if (checkArray.get(position)) {
+                        checkBox.setChecked(true);
+                    }
+                }
+
+            }else if(gridview.getChoiceMode()==ListView.CHOICE_MODE_NONE){
+                gridview.clearChoices();
+                checkArray = gridview.getCheckedItemPositions();
+                checkBox.setAlpha(0);
+            }
+            imageView.setImageURI(Uri.parse(getItem(position).toString()));
+            return convertView;
         }
 
         public void removeImage(int position){
-            list.remove(position);
 
-            notifyDataSetChanged();
+            Log.i("checkarray","checkarry = "+list.get(position).toString());
+            //File dir = getFilesDir();
+            //File file = new File(list.get(position).toString());
+            //boolean deleted = file.delete();
+            //Log.i("checkarray","checkarry = " + deleted);
+            list.remove(position);
+            //remove from checkarray
+
+            Log.i("checkarray","checkarray = "+checkArray);
+            if(checkArray != null){
+                for (int i = position; i < list.size(); i++) {
+                    Log.i("checkarray", "checkarray           = " + i);
+                    checkArray.put(i, checkArray.get(i + 1));
+                }
+                checkArray.put(list.size(), false);
+            }
+
+
+            gridAdapter.notifyDataSetChanged();
+
 
 
         }
 
 
     }
-
 }

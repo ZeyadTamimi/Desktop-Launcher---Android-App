@@ -24,10 +24,11 @@
         android:columnWidth="100dp"
         android:numColumns="auto_fit"
         android:verticalSpacing="10dp"
-        android:horizontalSpacing="10dp"
+        android:horizontalSpacing="5dp"
         android:stretchMode="spacingWidthUniform"
-        android:gravity="center"
-        />
+        android:gravity="center" />
+
+
 
 
 </LinearLayout>

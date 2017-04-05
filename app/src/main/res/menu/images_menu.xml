@@ -7,12 +7,13 @@
         android:icon="@mipmap/ic_delete_forever_black_24dp"
         app:showAsAction="ifRoom" />
 
+    <!--
     <item
         android:id="@+id/action_settings"
         android:icon="@mipmap/ic_settings_black_24dp"
         android:title="@string/action_bluetooth"
         app:showAsAction="ifRoom" />
-
+        -->
 
 
 </menu>

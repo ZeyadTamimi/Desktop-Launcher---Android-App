@@ -142,4 +142,5 @@ public class ImageViewerActivity extends AppCompatActivity {
         public void onSwipeBottom() {
         }
     }
+
 }
