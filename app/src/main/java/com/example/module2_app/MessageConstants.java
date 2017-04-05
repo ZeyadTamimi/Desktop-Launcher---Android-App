@@ -4,13 +4,21 @@ package com.example.module2_app;
 // Defines several constants used when transmitting messages between the
 // service and the UI.
 public interface MessageConstants {
+    // Logic T/F
+    public static final int FALSE = 0;
+    public static final int TRUE = 1;
+
     // Handler Communication
     public static final int MESSAGE_NIOS_RESPONSE = 0;
     public static final int MESSAGE_WRITE = 1;
     public static final int MESSAGE_TOAST = 2;
     public static final int MESSAGE_CONNECT_SUCCESS = 3;
     public static final int MESSAGE_CONNECT_FAIL = 4;
-    public static final int MESSAGE_UPDATE_UI = 5;
+    public static final int MESSAGE_UI_UPDATE = 5;
+
+    // Upadte UI messages
+    public static final int UI_UPDATE_LOADING_IMAGE = 0;
+    public static final int UI_UPDATE_ENABLE_BUTTONS = 1;
 
     // Message IDs
     public static final int ID_COMMAND_MOVE_TIME = 0x01;

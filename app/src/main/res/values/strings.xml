@@ -8,4 +8,7 @@
     <string name="picture_activity_label">Image </string>
     <string name="settings_activity_label"> Settings </string>
 
+    <string name="tracking_enable"> Start Tracking </string>
+    <string name="tracking_disable"> Stop Tracking </string>
+
 </resources>

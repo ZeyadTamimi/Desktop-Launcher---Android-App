@@ -9,6 +9,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
@@ -21,6 +22,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -30,10 +32,29 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
 
+import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.LoaderCallbackInterface;
+import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.Point;
+import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
+import org.opencv.core.Size;
+import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
+
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.opencv.imgcodecs.Imgcodecs.imread;
 
 // TODO: fix positioning of accel switch
 // TODO: fix logic of when to display buttons when to not display buttons
@@ -41,8 +62,8 @@ public class MainActivity extends AppCompatActivity {
     //--------
     // FIELDS
     //----------------------------------------------------------------------------------------------
-    private static final int X_MAX_ANGLE = 45;
-    private static final int Y_MAX_ANGLE = 30;
+    public static final int X_MAX_ANGLE = 45;
+    public static final int Y_MAX_ANGLE = 30;
     private static final int NUM_BUTTONS = 6;
 
     public static MainActivity ref;
@@ -71,15 +92,59 @@ public class MainActivity extends AppCompatActivity {
     private ImageView mPictureView;
     private ProgressBar mPictureLoading;
     private TextView mTextNotConnected;
+    private Button mTrackingButton;
     // NOTE: 0-3: up down left right, 4-5: fire, camera
     private FloatingActionButton[] mButtonArray;
+    private int mLastTab = 0;
 
+
+    // Tracking Setup
+    private boolean             mTrackingEnabled = false;
+    // OpenCV Stuff
+    private boolean              mIsColorSelected = false;
+    private Mat mRgba;
+    private Scalar mBlobColorRgba;
+    private Scalar               mBlobColorHsv;
+    private ColorBlobDetector    mDetector;
+    private Mat                  mSpectrum;
+    private Size SPECTRUM_SIZE;
+    private Scalar               CONTOUR_COLOR;
+    private String               mTrackingImageViewFileName = "dtr_temp_file.png";
+    private String               savedImageName = null;
+    public static Point          mTrackedBlobCenter = null;
     // bluetooth communication handler
     private Handler mHandler;
 
     //---------------
     // STATE CHANGES
     //----------------------------------------------------------------------------------------------
+
+    ////////////////////////////////
+    // Open CV //
+    ////////////////////////////////
+    // This method handles the loading of the OpenCV Library
+    private BaseLoaderCallback mOpenCVCallback = new BaseLoaderCallback(this) {
+        @Override
+        public void onManagerConnected(int status) {
+            switch (status) {
+                case LoaderCallbackInterface.SUCCESS:
+                {
+                    // TODO remove the hardcode!
+                    mRgba = new Mat(240, 320, CvType.CV_8UC4);
+                    mDetector = new ColorBlobDetector();
+                    mSpectrum = new Mat();
+                    mBlobColorRgba = new Scalar(255);
+                    mBlobColorHsv = new Scalar(255);
+                    SPECTRUM_SIZE = new Size(200, 64);
+                    CONTOUR_COLOR = new Scalar(255,0,0,255);
+                } break;
+                default:
+                {
+                    super.onManagerConnected(status);
+                } break;
+            }
+        }
+    };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,8 +155,6 @@ public class MainActivity extends AppCompatActivity {
 
         Toolbar myToolbar = (Toolbar) findViewById(R.id.activity_main_toolbar);
         setSupportActionBar(myToolbar);
-
-
 
 
         ///////////////////////////
@@ -192,6 +255,9 @@ public class MainActivity extends AppCompatActivity {
         mPictureView = (ImageView) findViewById(R.id.iv_picture);
         mPictureLoading = (ProgressBar) findViewById(R.id.icon_loading_picture);
         mTextNotConnected = (TextView) findViewById(R.id.text_not_connected);
+        // TODO Update the button name
+        mTrackingButton = (Button) findViewById(R.id.button_tracking);
+        mTrackingButton.setEnabled(false);
 
         mButtonArray = new FloatingActionButton[NUM_BUTTONS];
         mButtonArray[0] =  (FloatingActionButton) findViewById(R.id.button_up);
@@ -222,33 +288,36 @@ public class MainActivity extends AppCompatActivity {
         mPictureView.setOnTouchListener(new View.OnTouchListener(){
             @Override
             public boolean onTouch(View view, MotionEvent event) {
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN: {
-                        //TODO clean up
-                        int x = (int) event.getX();
-                        int y = (int) event.getY();
-                        int width = mPictureView.getWidth();
-                        int height = mPictureView.getHeight();
-                        int x_relative = x - width/2;
-                        int y_relative = y - height/2;
-                        int x_factor = width/2/X_MAX_ANGLE;
-                        int y_factor = height/2/Y_MAX_ANGLE;
-                        int x_angle = x_relative/x_factor;
-                        int y_angle = y_relative/y_factor;
-                        rotateTouch(x_angle, y_angle);
-                        /*
-                        Log.i("view size","width= "+width);
-                        Log.i("view size","height= "+height);
-                        Log.i("coordinate","x= "+x);
-                        Log.i("coordinate","y= "+y);
-                        Log.i("relative","x= "+x_relative);
-                        Log.i("relative","y= "+y_relative);
-                        Log.i("angle","x= "+x_angle);
-                        Log.i("angle","y= "+y_angle);
-                        */
-                        break;
-                    }
+                if ((event.getAction() != MotionEvent.ACTION_DOWN) || !mAllowActions || !mCanSendCommands.get())
+                    return false;
+
+                int x = (int) event.getX();
+                int y = (int) event.getY();
+
+                if (mCurrentMode != ExecuteModeTask.ModeType.TRACKING) {
+                    processImageMoveTouch(x, y);
+                    return true;
                 }
+
+                // Stop processing user inputs if tracking is disabled
+                if (mTrackingEnabled)
+                    return false;
+
+                // TODO assert that we are in tracking mode tab!
+                if (savedImageName == null) {
+                    toast.out("Please take a picture first");
+                    return false;
+                }
+
+                processImageTrackingTouch(x, y);
+                // At this stage it makes sense to process the image and update it
+                if (!processSavedImage()) {
+                    toast.out("Error: Ensure I have storage permissions!");
+                    return false;
+                }
+
+                displayImageFileName(mTrackingImageViewFileName);
+                mTrackingButton.setEnabled(true);
                 return true;
             }
         });
@@ -268,6 +337,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
+
+        if (!OpenCVLoader.initDebug()) {
+            Log.d("WOW", "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mOpenCVCallback);
+        } else {
+            Log.d("WOW", "OpenCV library found inside package. Using it!");
+            mOpenCVCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+        }
+
         ref = this;
         enableActions(false);
         enableAccelerometer(mAccelOnSwitch.isChecked());
@@ -313,6 +391,10 @@ public class MainActivity extends AppCompatActivity {
         ref = this;
 
         enableAccelerometer(false);
+
+        if (mExecuteModeTask != null)
+            mExecuteModeTask.cancel(false);
+
         if (mSendCommandTask != null)
             mSendCommandTask.cancel(false);
 
@@ -381,6 +463,9 @@ public class MainActivity extends AppCompatActivity {
             case R.id.button_camera:
                 takePicture();
                 break;
+            case R.id.button_tracking:
+                toggleTracking();
+                break;
             default:
                 break;
         }
@@ -418,6 +503,21 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    //----------------------------------------------------------------------------------------------
+    private void toggleTracking() {
+        if (!mTrackingEnabled) {
+            mExecuteModeTask.execute(ExecuteModeTask.ModeType.TRACKING);
+            mTrackingButton.setText(getString(R.string.tracking_disable));
+            mTrackingEnabled = true;
+        }
+        else {
+            mTrackingButton.setText(getString(R.string.tracking_enable));
+            mExecuteModeTask.cancel(false);
+            mTrackingEnabled = false;
+        }
+    }
+
     //----------------------------------------------------------------------------------------------
     public void fire() {
         toast.out("FIRE");
@@ -432,13 +532,35 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //----------------------------------------------------------------------------------------------
-    private void displayImage(byte[] byteArray, int offset, int size) {
+    private void displayImageByteArray(byte[] byteArray, int offset, int size) {
         showLoading(false);
         ByteArrayInputStream in = new ByteArrayInputStream(byteArray, offset, size);
         Bitmap bitmap = BitmapFactory.decodeStream(in);
+        // At this point if the image data is so corrupted that the markers are messed up the bimap
+        // can be null
+        if (bitmap == null)
+            return;
+
         mPictureView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, mPictureView.getWidth(), mPictureView.getHeight(), false));
-        if (State.backup_switch_state)
-            Util.saveImage(byteArray, offset, size);
+        if (!State.backup_switch_state)
+            savedImageName = Util.saveImage(byteArray, offset, size);
+
+        // Note: when switching from tracking to another mode, the last track will be off cause this
+        // wont run!!!
+        if (mCurrentMode == ExecuteModeTask.ModeType.TRACKING) {
+            if (processSavedImage())
+                displayImageFileName(mTrackingImageViewFileName);
+        }
+
+
+    }
+
+    private void displayImageFileName(String filename) {
+        showLoading(false);
+        File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        File file = new File(path, filename);
+        Bitmap bitmap = BitmapFactory.decodeFile(file.getPath());
+        mPictureView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, mPictureView.getWidth(), mPictureView.getHeight(), false));
     }
 
     //----------------------------------------------------------------------------------------------
@@ -533,14 +655,19 @@ public class MainActivity extends AppCompatActivity {
             toast.out(toastMessage);
             Log.i("TAB_POSITION", String.valueOf(tab.getPosition()));
 
-            if (mExecuteModeTask != null) {
-                mExecuteModeTask.cancel(false);
+            mExecuteModeTask = new ExecuteModeTask(mHandler);
+            ViewFlipper vf = (ViewFlipper) findViewById( R.id.viewFlipper );
+            vf.setDisplayedChild(vf.indexOfChild(findViewById(R.id.section_buttons)));
+            if ((mCurrentMode == ExecuteModeTask.ModeType.TRACKING) && mCanSendCommands.get()) {
+
+                enableActions(true);
             }
 
-            mExecuteModeTask = new ExecuteModeTask(mHandler);
             switch (tab.getPosition()) {
                 case 0:
                     mCurrentMode = ExecuteModeTask.ModeType.MANUAL;
+                    if (mAllowActions && mCanSendCommands.get())
+                        enableButtons(true);
                     break;
                 case 1:
                     enableButtons(false);
@@ -551,15 +678,20 @@ public class MainActivity extends AppCompatActivity {
                     mCurrentMode = ExecuteModeTask.ModeType.SECURITY;
                     break;
                 case 3:
+                    if (!State.backup_switch_state) {
+                        // TODO STOP THE TAB FROM SWITCHING!!!!
+                        toast.out("Please enable photo backup to enable this feature!");
+                        break;
+                    }
                     enableButtons(false);
                     mCurrentMode = ExecuteModeTask.ModeType.TRACKING;
-                    ViewFlipper vf = (ViewFlipper) findViewById( R.id.viewFlipper );
                     vf.setDisplayedChild(vf.indexOfChild(findViewById(R.id.section_tracking)));
-                    break;
+                    return;
                 default:
                     break;
             }
 
+            mLastTab = tab.getPosition();
             mExecuteModeTask.execute(mCurrentMode);
         }
         @Override
@@ -568,6 +700,8 @@ public class MainActivity extends AppCompatActivity {
         public void onTabReselected(TabLayout.Tab tab) {}
     }
 
+    // TODO: BUG if you switch manual -> auto -> manual really fast,
+    // actions will be enabled
     //----------------------------------------------------------------------------------------------
     private static class CommunicationHandler extends Handler {
         @Override
@@ -591,17 +725,131 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                     else if (Util.uByte(receiveMessage[0]) == MessageConstants.ID_MESG_IMAGE) {
-                        ref.displayImage(receiveMessage, 3, (receiveMessage[1] << 8) + Util.uByte(receiveMessage[2]));
+                        ref.displayImageByteArray(receiveMessage, 3, (receiveMessage[1] << 8) + Util.uByte(receiveMessage[2]));
+                    }
+
+                    // TODO Make this more robust as discussed
+                    ref.enableActions(
+                            (ref.mCurrentMode == ExecuteModeTask.ModeType.MANUAL ||
+                             ref.mCurrentMode == ExecuteModeTask.ModeType.TRACKING) &&
+                            !ref.mHoldingButton &&
+                            !ref.mAccelMovement
+                    );
+
+                    mCanSendCommands.set(true);
+                    break;
+
+                case MessageConstants.MESSAGE_UI_UPDATE:
+                    if (msg.arg1 == MessageConstants.UI_UPDATE_LOADING_IMAGE) {
+                        ref.showLoading(msg.arg2 == MessageConstants.TRUE);
                     }
                     break;
-
-                case MessageConstants.MESSAGE_UPDATE_UI:
-
-                    break;
             }
-            ref.enableActions(!ref.mHoldingButton && !ref.mAccelMovement);
-            mCanSendCommands.set(true);
         }
+    }
+
+    private void processImageMoveTouch (int x, int y) {
+        int width = mPictureView.getWidth();
+        int height = mPictureView.getHeight();
+        int x_relative = x - width/2;
+        // This is because y increases as you go lower on the screen
+        int y_relative = (height - y) - height/2;
+        int x_factor = width/2/X_MAX_ANGLE;
+        int y_factor = height/2/Y_MAX_ANGLE;
+        int x_angle = x_relative/x_factor;
+        int y_angle = y_relative/y_factor;
+        rotateTouch(x_angle, y_angle);
+    }
+
+    // TODO Move this to utils maybe
+    private boolean processImageTrackingTouch(int eventX, int eventY) {
+
+        int cols = mRgba.cols();
+        int rows = mRgba.rows();
+
+        // Ratio
+        float xRatio = ((float)cols)/((float)mPictureView.getWidth());
+        float yRatio = ((float)rows)/((float)mPictureView.getHeight());
+
+        int x = (int) (eventX * xRatio);
+        int y = (int) (eventY * yRatio);
+
+
+        if ((x < 0) || (y < 0) || (x > cols) || (y > rows)) return false;
+
+        Rect touchedRect = new Rect();
+
+        touchedRect.x = (x>4) ? x-4 : 0;
+        touchedRect.y = (y>4) ? y-4 : 0;
+
+        touchedRect.width = (x+4 < cols) ? x + 4 - touchedRect.x : cols - touchedRect.x;
+        touchedRect.height = (y+4 < rows) ? y + 4 - touchedRect.y : rows - touchedRect.y;
+
+        Mat touchedRegionRgba = mRgba.submat(touchedRect);
+
+        Mat touchedRegionHsv = new Mat();
+        Imgproc.cvtColor(touchedRegionRgba, touchedRegionHsv, Imgproc.COLOR_RGB2HSV_FULL);
+
+        // Calculate average color of touched region
+        mBlobColorHsv = Core.sumElems(touchedRegionHsv);
+        int pointCount = touchedRect.width*touchedRect.height;
+        for (int i = 0; i < mBlobColorHsv.val.length; i++)
+            mBlobColorHsv.val[i] /= pointCount;
+
+        mBlobColorRgba = Util.converScalarHsv2Rgba(mBlobColorHsv);
+
+        mDetector.setHsvColor(mBlobColorHsv);
+
+        Imgproc.resize(mDetector.getSpectrum(), mSpectrum, SPECTRUM_SIZE);
+
+        mIsColorSelected = true;
+
+        touchedRegionRgba.release();
+        touchedRegionHsv.release();
+
+        return true;
+    }
+
+    private boolean processSavedImage() {
+
+        if (savedImageName == null)
+            return false;
+
+        if (!mIsColorSelected)
+            return false;
+
+        mRgba  = imread(savedImageName);
+        mDetector.process(mRgba);
+        List<MatOfPoint> contours = mDetector.getContours();
+        if (contours.size() == 0)
+            return false;
+
+        // We now need to pick the largest contour
+        List<MatOfPoint> pickedContour = new ArrayList();
+        pickedContour.add(Util.largerCountour(contours));
+
+
+        Imgproc.drawContours(mRgba, pickedContour, -1, CONTOUR_COLOR);
+
+        // Get and save the centroid of the detected point
+        mTrackedBlobCenter = Util.contourCenter(pickedContour.get(0));
+
+        // This generates the color that we are tracking as a reference
+        // TODO integrate this
+        //Mat colorLabel = mRgba.submat(4, 68, 4, 68);
+        //colorLabel.setTo(mBlobColorRgba);
+
+        // TODO figure this out!
+        //Mat spectrumLabel = mRgba.submat(4, 4 + mSpectrum.rows(), 70, 70 + mSpectrum.cols());
+        //mSpectrum.copyTo(spectrumLabel);
+
+        File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        File file = new File(path, mTrackingImageViewFileName);
+        // Check if this over writes the image.
+        Boolean bool = Imgcodecs.imwrite(file.toString(), mRgba);
+
+
+        return bool;
     }
 
     //----------------------------------------------------------------------------------------------
