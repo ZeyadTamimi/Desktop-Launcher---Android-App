@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Desktop Launcher</string>
+    <string name="app_icon_name">DTL</string>
     <string name="action_bluetooth">Bluetooth</string>
     <string name="action_images">Images</string>
     <string name="action_settings">Settings </string>

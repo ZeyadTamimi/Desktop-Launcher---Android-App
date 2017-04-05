@@ -12,7 +12,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -87,7 +86,6 @@ public class GalleryActivity extends AppCompatActivity {
 
         gridview.setOnItemClickListener(new OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-                Log.i("checkarray","checkarray = "+checkArray);
                 if ( gridview.getChoiceMode()==GridView.CHOICE_MODE_NONE) {
                     gridview.setChoiceMode(GridView.CHOICE_MODE_NONE);
                     gridAdapter.notifyDataSetChanged();
@@ -152,16 +150,13 @@ public class GalleryActivity extends AppCompatActivity {
             case R.id.action_delete:
 
                 if(gridview.getChoiceMode()==GridView.CHOICE_MODE_MULTIPLE) { //if multiple select
-                    SparseBooleanArray backup = gridview.getCheckedItemPositions();
 
                     for (int i = 0; i < list.size(); i++) {
-                        Log.i("checkarray","checkarray = "+i);
                         if (checkArray.get(i)) {
                             gridAdapter.removeImage(i);
                             i--;
                         }
                     }
-                    Log.i("checkarray","checkarray = "+checkArray);
                     gridview.setChoiceMode(GridView.CHOICE_MODE_NONE);
 
                 }
@@ -227,19 +222,13 @@ public class GalleryActivity extends AppCompatActivity {
         }
 
         public void removeImage(int position){
-
-            Log.i("checkarray","checkarry = "+list.get(position).toString());
-            //File dir = getFilesDir();
-            //File file = new File(list.get(position).toString());
-            //boolean deleted = file.delete();
-            //Log.i("checkarray","checkarry = " + deleted);
+            File dir = getFilesDir();
+            File file = new File(list.get(position).toString());
+            boolean deleted = file.delete();
             list.remove(position);
-            //remove from checkarray
 
-            Log.i("checkarray","checkarray = "+checkArray);
             if(checkArray != null){
                 for (int i = position; i < list.size(); i++) {
-                    Log.i("checkarray", "checkarray           = " + i);
                     checkArray.put(i, checkArray.get(i + 1));
                 }
                 checkArray.put(list.size(), false);
