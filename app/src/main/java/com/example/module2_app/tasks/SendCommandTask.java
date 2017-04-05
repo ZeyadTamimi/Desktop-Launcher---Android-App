@@ -22,17 +22,25 @@ public class SendCommandTask extends AsyncTask<SendCommandTask.CommandType, Void
             MainActivity.mCanSendCommands.set(false);
             switch (params[0]){
                 case UP:
-                    State.mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_UP, 0);
+                    State.mmCommunicationThread.commandMoveTimeSpeed(
+                            MessageConstants.MOVE_UP, State.turret_speed_bar_value + 1, 0);
                     break;
+
                 case DOWN:
-                    State.mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_DOWN, 0);
+                    State.mmCommunicationThread.commandMoveTimeSpeed(
+                            MessageConstants.MOVE_DOWN, State.turret_speed_bar_value + 1, 0);
                     break;
+
                 case LEFT:
-                    State.mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_LEFT, 100000);
+                    State.mmCommunicationThread.commandMoveTimeSpeed(
+                            MessageConstants.MOVE_LEFT, State.turret_speed_bar_value + 1, 100000);
                     break;
+
                 case RIGHT:
-                    State.mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_RIGHT, 100000);
+                    State.mmCommunicationThread.commandMoveTimeSpeed(
+                            MessageConstants.MOVE_RIGHT, State.turret_speed_bar_value + 1, 100000);
                     break;
+
                 default:
                     MainActivity.mCanSendCommands.set(true);
                     break;
