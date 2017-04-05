@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
     //----------------------------------------------------------------------------------------------
     public static final int X_MAX_ANGLE = 45;
     public static final int Y_MAX_ANGLE = 30;
+
     private static final int NUM_BUTTONS = 6;
 
     public static MainActivity ref;
@@ -97,7 +98,6 @@ public class MainActivity extends AppCompatActivity {
     private FloatingActionButton[] mButtonArray;
     private int mLastTab = 0;
 
-
     // Tracking Setup
     private boolean             mTrackingEnabled = false;
     // OpenCV Stuff
@@ -112,16 +112,13 @@ public class MainActivity extends AppCompatActivity {
     private String               mTrackingImageViewFileName = "dtr_temp_file.png";
     private String               savedImageName = null;
     public static Point          mTrackedBlobCenter = null;
+
     // bluetooth communication handler
     private Handler mHandler;
 
-    //---------------
-    // STATE CHANGES
+    //---------
+    // Open CV
     //----------------------------------------------------------------------------------------------
-
-    ////////////////////////////////
-    // Open CV //
-    ////////////////////////////////
     // This method handles the loading of the OpenCV Library
     private BaseLoaderCallback mOpenCVCallback = new BaseLoaderCallback(this) {
         @Override
@@ -145,6 +142,10 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
+
+    //---------------
+    // STATE CHANGES
+    //----------------------------------------------------------------------------------------------
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -503,7 +504,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     //----------------------------------------------------------------------------------------------
     private void toggleTracking() {
         if (!mTrackingEnabled) {
@@ -748,6 +748,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //------------------
+    // Image Processing
+    //----------------------------------------------------------------------------------------------
     private void processImageMoveTouch (int x, int y) {
         int width = mPictureView.getWidth();
         int height = mPictureView.getHeight();
@@ -762,6 +765,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // TODO Move this to utils maybe
+    //----------------------------------------------------------------------------------------------
     private boolean processImageTrackingTouch(int eventX, int eventY) {
 
         int cols = mRgba.cols();
@@ -810,6 +814,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    //----------------------------------------------------------------------------------------------
     private boolean processSavedImage() {
 
         if (savedImageName == null)
