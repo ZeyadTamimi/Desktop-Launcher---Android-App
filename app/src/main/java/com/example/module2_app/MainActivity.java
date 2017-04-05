@@ -95,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
     private Button mTrackingButton;
     // NOTE: 0-3: up down left right, 4-5: fire, camera
     private FloatingActionButton[] mButtonArray;
+    private int mLastTab = 0;
 
 
     // Tracking Setup
@@ -677,6 +678,11 @@ public class MainActivity extends AppCompatActivity {
                     mCurrentMode = ExecuteModeTask.ModeType.SECURITY;
                     break;
                 case 3:
+                    if (!State.backup_switch_state) {
+                        // TODO STOP THE TAB FROM SWITCHING!!!!
+                        toast.out("Please enable photo backup to enable this feature!");
+                        break;
+                    }
                     enableButtons(false);
                     mCurrentMode = ExecuteModeTask.ModeType.TRACKING;
                     vf.setDisplayedChild(vf.indexOfChild(findViewById(R.id.section_tracking)));
@@ -685,6 +691,7 @@ public class MainActivity extends AppCompatActivity {
                     break;
             }
 
+            mLastTab = tab.getPosition();
             mExecuteModeTask.execute(mCurrentMode);
         }
         @Override

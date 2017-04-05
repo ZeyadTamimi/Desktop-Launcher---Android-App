@@ -28,7 +28,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 public class GalleryActivity extends AppCompatActivity {
-    public static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 1;
+    public static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 2;
     public static GridView gridview;
     public static ArrayList<File> list;
     public static GridAdapter gridAdapter;

@@ -1,6 +1,10 @@
 package com.example.module2_app;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -14,7 +18,7 @@ import android.widget.Switch;
 
 public class SettingsActivity extends AppCompatActivity {
 
-
+    public static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 1;
     public Switch backup_switch;
     public SeekBar turret_speed_bar;
     public SeekBar image_resolution_bar;
@@ -35,6 +39,16 @@ public class SettingsActivity extends AppCompatActivity {
         backup_switch = (Switch) findViewById(R.id.backup_switch);
         turret_speed_bar = (SeekBar) findViewById(R.id.turret_speed_bar);
         image_resolution_bar = (SeekBar) findViewById(R.id.resolution_bar);
+
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
+
+        }
 
 
     }
