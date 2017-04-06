@@ -122,7 +122,6 @@ public class ExecuteModeTask extends AsyncTask<ExecuteModeTask.ModeType, Void, V
             int x_angle = x_relative/x_factor;
             int y_angle = y_relative/y_factor;
 
-
             // Get the smallest angle to the point we wish to track.
             if (x_angle <= 127 && x_angle >= -128 && y_angle <= 127 && y_angle >= -128) {
                 MainActivity.mCanSendCommands.set(false);

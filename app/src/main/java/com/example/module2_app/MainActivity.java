@@ -498,7 +498,6 @@ public class MainActivity extends AppCompatActivity {
     //----------------------------------------------------------------------------------------------
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle item selection
         switch (item.getItemId()) {
             case R.id.action_bluetooth:
                 Intent intent1 = new Intent(this, BluetoothConnectActivity.class);
@@ -543,6 +542,12 @@ public class MainActivity extends AppCompatActivity {
 
     //----------------------------------------------------------------------------------------------
     private void toggleTracking() {
+        if (mCurrentMode == ExecuteModeTask.ModeType.TRACKING &&
+            mExecuteModeTask.getStatus() == AsyncTask.Status.PENDING) {
+
+            mExecuteModeTask.execute(ExecuteModeTask.ModeType.TRACKING);
+        }
+
         if (!mTrackingEnabled.get()) {
             mTrackingButton.setText(getString(R.string.tracking_disable));
             mTrackingEnabled.set(true);
@@ -550,12 +555,16 @@ public class MainActivity extends AppCompatActivity {
         else {
             mTrackingButton.setText(getString(R.string.tracking_enable));
             mTrackingEnabled.set(false);
+            if (mCanSendCommands.get()) {
+                enableActions(true);
+            }
         }
     }
 
     //----------------------------------------------------------------------------------------------
     private void fire() {
         toast.out("FIRE");
+        mCanSendCommands.set(false);
         State.mmCommunicationThread.commandFire();
     }
 
@@ -563,6 +572,7 @@ public class MainActivity extends AppCompatActivity {
     private void takePicture() {
         toast.out("PICTURE");
         showLoading(true);
+        mCanSendCommands.set(false);
         State.mmCommunicationThread.requestMessage(MessageConstants.ID_MESG_IMAGE);
     }
 
@@ -773,10 +783,13 @@ public class MainActivity extends AppCompatActivity {
             // Handle the case of switching from the tracking mode
             if (mCurrentMode == ExecuteModeTask.ModeType.TRACKING) {
                 mTrackingEnabled.set(false);
-                mExecuteModeTask.cancel(false);
                 mTrackingButton.setText(getString(R.string.tracking_enable));
                 if (mCanSendCommands.get())
                     enableActions(true);
+            }
+
+            if (savedImageName != null && mAllowActions) {
+                displayImageFileName(savedImageName, false);
             }
 
             mExecuteModeTask = new ExecuteModeTask(mHandler);
@@ -807,13 +820,18 @@ public class MainActivity extends AppCompatActivity {
                     if (mCanSendCommands.get())
                         enableActions(true);
 
-                    if (savedImageName == null) {
+                    if (savedImageName == null && mAllowActions) {
                         enableActions(false);
                         takePicture();
                     }
 
+                    if (mIsColorSelected && savedImageName != null) {
+                        processSavedImage();
+                        if (mAllowActions)
+                            displayImageFileName(TRACKING_WORKING_IMAGE_FILE_NAME, true);
+                    }
+
                     mCurrentMode = ExecuteModeTask.ModeType.TRACKING;
-                    mExecuteModeTask.execute(ExecuteModeTask.ModeType.TRACKING);
                     vf.setDisplayedChild(vf.indexOfChild(findViewById(R.id.section_tracking)));
                     return;
                 default:
@@ -861,15 +879,15 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     // TODO Make this more robust as discussed
-                    ref.enableActions(
-                            (ref.mCurrentMode == ExecuteModeTask.ModeType.MANUAL ||
-                             ref.mCurrentMode == ExecuteModeTask.ModeType.TRACKING) &&
+                    ref.enableActions(ref.mCurrentMode == ExecuteModeTask.ModeType.TRACKING ||
+
+                            (ref.mCurrentMode == ExecuteModeTask.ModeType.MANUAL &&
 
                             (ref.mExecuteModeTask == null ||
-                             ref.mExecuteModeTask.getStatus() == AsyncTask.Status.FINISHED) &&
+                             ref.mExecuteModeTask.getStatus() != AsyncTask.Status.RUNNING) &&
 
                             !ref.mHoldingButton &&
-                            !ref.mAccelMovement
+                            !ref.mAccelMovement)
                     );
 
                     mCanSendCommands.set(true);
