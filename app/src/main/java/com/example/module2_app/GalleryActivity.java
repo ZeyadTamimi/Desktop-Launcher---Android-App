@@ -30,6 +30,7 @@ import android.widget.ListView;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class GalleryActivity extends AppCompatActivity {
     //----------------------------------------------------------------------------------------------
@@ -128,6 +129,7 @@ public class GalleryActivity extends AppCompatActivity {
                 }
             }
         }
+        Collections.reverse(a);
         return a;
 
     }

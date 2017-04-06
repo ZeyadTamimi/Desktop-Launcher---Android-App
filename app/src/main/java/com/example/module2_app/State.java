@@ -11,7 +11,6 @@ public class State {
 
     public static boolean backup_switch_state = true;
     public static int turret_speed_bar_value = 2;
-    public static int image_resolution_bar_value = 1;
     public static long lastPhotoNumber = 0;
 
     public static int lastConnectedPos = 0;
