@@ -92,6 +92,9 @@ public class ExecuteModeTask extends AsyncTask<ExecuteModeTask.ModeType, Void, V
 
     private void enterTrackingMode() {
         while(!isCancelled()) {
+            if (!MainActivity.mTrackingEnabled.get())
+                continue;
+
             if (!MainActivity.mCanSendCommands.get())
                 continue;
 

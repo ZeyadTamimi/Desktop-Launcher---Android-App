@@ -57,7 +57,7 @@ public class SettingsActivity extends AppCompatActivity {
         super.onPause();
 
         backup_switch_state = backup_switch.isChecked();
-        turret_speed_bar_value = turret_speed_bar.getProgress();
+        turret_speed_bar_value = turret_speed_bar.getProgress() + 1;
         image_resolution_bar_value = image_resolution_bar.getProgress();
 
         State.backup_switch_state = backup_switch_state;
@@ -70,7 +70,7 @@ public class SettingsActivity extends AppCompatActivity {
         super.onResume();
 
         backup_switch_state = State.backup_switch_state;
-        turret_speed_bar_value = State.turret_speed_bar_value;
+        turret_speed_bar_value = State.turret_speed_bar_value - 1;
         image_resolution_bar_value = State.image_resolution_bar_value;
 
         backup_switch.setChecked(backup_switch_state);

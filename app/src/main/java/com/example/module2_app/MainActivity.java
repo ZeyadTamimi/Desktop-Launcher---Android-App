@@ -58,17 +58,22 @@ import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.opencv.imgcodecs.Imgcodecs.imread;
+import static org.opencv.imgcodecs.Imgcodecs.imwrite;
 
 public class MainActivity extends AppCompatActivity {
-    //--------
+    //----------------------------------------------------------------------------------------------
+    // Constants
+    //----------------------------------------------------------------------------------------------
+    public static final int     X_MAX_ANGLE = 30;
+    public static final int     Y_MAX_ANGLE = 30;
+    private static final int    NUM_BUTTONS = 7;
+    public static final int     MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 2;
+    private String              TRACKING_WORKING_IMAGE_FILE_NAME = "dtr_tracking_working_file.png";
+    private String              TRACKING_TEMP_IMAGE_FILE_NAME = "dtr_tracking_temp_file.png";
+
+    //----------------------------------------------------------------------------------------------
     // FIELDS
     //----------------------------------------------------------------------------------------------
-    public static final int X_MAX_ANGLE = 45;
-    public static final int Y_MAX_ANGLE = 30;
-
-    private static final int NUM_BUTTONS = 7;
-    public static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 2;
-
     public static MainActivity ref;
     public static AppToast toast;
     private String toastMessage = "";
@@ -94,6 +99,8 @@ public class MainActivity extends AppCompatActivity {
     private TabLayout mTabLayout;
     private LinearLayout mTabStrip;
     private ImageView mPictureView;
+    private ImageView mColorView;
+    private ImageView mSpectrumView;
     private ProgressBar mPictureLoading;
     private TextView mTextNotConnected;
     private Button mTrackingButton;
@@ -102,24 +109,26 @@ public class MainActivity extends AppCompatActivity {
     private int mLastTab = 0;
 
     // Tracking Setup
-    private boolean             mTrackingEnabled = false;
+    public static AtomicBoolean mTrackingEnabled;
     // OpenCV Stuff
-    private boolean              mIsColorSelected = false;
-    private Mat mRgba;
-    private Scalar mBlobColorRgba;
-    private Scalar               mBlobColorHsv;
-    private ColorBlobDetector    mDetector;
-    private Mat                  mSpectrum;
-    private Size SPECTRUM_SIZE;
-    private Scalar               CONTOUR_COLOR;
-    private String               mTrackingImageViewFileName = "dtr_temp_file.png";
-    private String               savedImageName = null;
-    public static Point          mTrackedBlobCenter = null;
+    public static boolean       mIsColorSelected = false;
+    private Mat                 mRgba;
+    private Mat                 mColorLabel = null;
+    private Mat                 mColorStrip = null;
+    private Mat                 mSpectrum;
+    private Scalar              CONTOUR_COLOR;
+    private Scalar              mBlobColorRgba;
+    private Scalar              mBlobColorHsv;
+    private ColorBlobDetector   mDetector;
+    private Size                SPECTRUM_SIZE;
+    private static String       savedImageName = null;
+    public static Point         mTrackedBlobCenter = null;
+
 
     // bluetooth communication handler
     private Handler mHandler;
 
-    //---------
+    //----------------------------------------------------------------------------------------------
     // Open CV
     //----------------------------------------------------------------------------------------------
     // This method handles the loading of the OpenCV Library
@@ -129,8 +138,8 @@ public class MainActivity extends AppCompatActivity {
             switch (status) {
                 case LoaderCallbackInterface.SUCCESS:
                 {
-                    // TODO remove the hardcode!
                     mRgba = new Mat(240, 320, CvType.CV_8UC4);
+                    mColorLabel = new Mat(64, 64, CvType.CV_8UC4);
                     mDetector = new ColorBlobDetector();
                     mSpectrum = new Mat();
                     mBlobColorRgba = new Scalar(255);
@@ -146,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    //---------------
+    //----------------------------------------------------------------------------------------------
     // STATE CHANGES
     //----------------------------------------------------------------------------------------------
     @Override
@@ -154,12 +163,19 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        ///////////////////////////
+        // Mode Setup //
+        ///////////////////////////
         ViewFlipper vf = (ViewFlipper) findViewById( R.id.viewFlipper );
         vf.setDisplayedChild(vf.indexOfChild(findViewById(R.id.section_buttons)));
 
         Toolbar myToolbar = (Toolbar) findViewById(R.id.activity_main_toolbar);
         setSupportActionBar(myToolbar);
 
+        ///////////////////////////
+        // Tracking Setup //
+        ///////////////////////////
+        mTrackingEnabled = new AtomicBoolean(false);
 
         ///////////////////////////
         // Communication handler //
@@ -298,6 +314,8 @@ public class MainActivity extends AppCompatActivity {
         mPictureView = (ImageView) findViewById(R.id.iv_picture);
         mPictureLoading = (ProgressBar) findViewById(R.id.icon_loading_picture);
         mTextNotConnected = (TextView) findViewById(R.id.text_not_connected);
+        mColorView = (ImageView) findViewById(R.id.colour_image);
+        mSpectrumView = (ImageView) findViewById(R.id.spectrum_image);
         mTrackingButton = (Button) findViewById(R.id.button_tracking);
         mTrackingButton.setEnabled(false);
 
@@ -343,7 +361,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 // Stop processing user inputs if tracking is disabled
-                if (mTrackingEnabled)
+                if (mTrackingEnabled.get())
                     return false;
 
                 // TODO assert that we are in tracking mode tab!
@@ -359,7 +377,9 @@ public class MainActivity extends AppCompatActivity {
                     return false;
                 }
 
-                displayImageFileName(mTrackingImageViewFileName);
+                displayImageFileName(TRACKING_WORKING_IMAGE_FILE_NAME, true);
+                displayColorMatrixFileName();
+                displaySpectrumMatrixFileName();
                 mTrackingButton.setEnabled(true);
                 return true;
             }
@@ -416,6 +436,7 @@ public class MainActivity extends AppCompatActivity {
             mTabStrip.getChildAt(3).setClickable(true);
         }
 
+
         ref = this;
         enableActions(false);
         enableAccelerometer(mAccelOnSwitch.isChecked());
@@ -446,6 +467,7 @@ public class MainActivity extends AppCompatActivity {
                     });
                 }
             };
+
             State.heartBeatTimmer.schedule(handshake, 0, 1000);
             showNotConnected(false);
             return;
@@ -496,33 +518,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //----------------------------------------------------------------------------------------------
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
-
-                } else {
-
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                }
-                return;
-            }
-
-            // other 'case' lines to check for other
-            // permissions this app might request
-        }
-    }
-
-    //-----------------
-    // Button Handlers
+    // BUTTON HANDLERS
     //----------------------------------------------------------------------------------------------
     public void buttonPress(View view) {
         enableActions(false);
@@ -546,49 +542,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //----------------------------------------------------------------------------------------------
-    private void enableButtonListners(boolean enable) {
-        findViewById(R.id.button_up).setOnTouchListener(
-                enable ? new ButtonOnHoldListener(SendCommandTask.CommandType.UP) : null
-        );
-        findViewById(R.id.button_down).setOnTouchListener(
-                enable ? new ButtonOnHoldListener(SendCommandTask.CommandType.DOWN) : null
-        );
-        findViewById(R.id.button_left).setOnTouchListener(
-                enable ? new ButtonOnHoldListener(SendCommandTask.CommandType.LEFT) : null
-        );
-        findViewById(R.id.button_right).setOnTouchListener(
-                enable ? new ButtonOnHoldListener(SendCommandTask.CommandType.RIGHT) : null
-        );
-    }
-
-    //---------
-    // Actions
-    //----------------------------------------------------------------------------------------------
-    private void rotateTouch(int x_angle, int y_angle){
-        if (mAllowActions) {
-            toastMessage = "x angle= "+ x_angle + " " + "y angle = " + y_angle;
-            // toast.out(toastMessage);
-            if (x_angle <= 127 && x_angle >= -128 && y_angle <= 127 && y_angle >= -128) {
-                enableActions(false);
-                State.mmCommunicationThread.commandMoveAngle(x_angle, y_angle);
-                // TODO: if we want to take a picture, need to synchronize
-                //       but we can't do this on the GUI thread
-                // takePicture();
-            }
-        }
-    }
-
-    //----------------------------------------------------------------------------------------------
     private void toggleTracking() {
-        if (!mTrackingEnabled) {
-            mExecuteModeTask.execute(ExecuteModeTask.ModeType.TRACKING);
+        if (!mTrackingEnabled.get()) {
             mTrackingButton.setText(getString(R.string.tracking_disable));
-            mTrackingEnabled = true;
+            mTrackingEnabled.set(true);
         }
         else {
             mTrackingButton.setText(getString(R.string.tracking_enable));
-            mExecuteModeTask.cancel(false);
-            mTrackingEnabled = false;
+            mTrackingEnabled.set(false);
         }
     }
 
@@ -606,6 +567,39 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //----------------------------------------------------------------------------------------------
+    private void enableButtonListners(boolean enable) {
+        findViewById(R.id.button_up).setOnTouchListener(
+                enable ? new ButtonOnHoldListener(SendCommandTask.CommandType.UP) : null
+        );
+        findViewById(R.id.button_down).setOnTouchListener(
+                enable ? new ButtonOnHoldListener(SendCommandTask.CommandType.DOWN) : null
+        );
+        findViewById(R.id.button_left).setOnTouchListener(
+                enable ? new ButtonOnHoldListener(SendCommandTask.CommandType.LEFT) : null
+        );
+        findViewById(R.id.button_right).setOnTouchListener(
+                enable ? new ButtonOnHoldListener(SendCommandTask.CommandType.RIGHT) : null
+        );
+    }
+
+    //----------------------------------------------------------------------------------------------
+    // Actions
+    //----------------------------------------------------------------------------------------------
+    private void rotateTouch(int x_angle, int y_angle){
+        if (mAllowActions) {
+            toastMessage = "x angle= "+ x_angle + " " + "y angle = " + y_angle;
+            // toast.out(toastMessage);
+            if (x_angle <= 127 && x_angle >= -128 && y_angle <= 127 && y_angle >= -128) {
+                enableActions(false);
+                State.mmCommunicationThread.commandMoveAngle(x_angle, y_angle);
+                // TODO: if we want to take a picture, need to synchronize
+                //       but we can't do this on the GUI thread
+                // takePicture();
+            }
+        }
+    }
+
+    //----------------------------------------------------------------------------------------------
     private void displayImageByteArray(byte[] byteArray, int offset, int size) {
         showLoading(false);
         ByteArrayInputStream in = new ByteArrayInputStream(byteArray, offset, size);
@@ -617,24 +611,71 @@ public class MainActivity extends AppCompatActivity {
 
         mPictureView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, mPictureView.getWidth(), mPictureView.getHeight(), false));
         if (!State.backup_switch_state)
-            savedImageName = Util.saveImage(byteArray, offset, size);
+            return;
+
+        savedImageName = Util.saveImage(byteArray, offset, size);
 
         // Note: when switching from tracking to another mode, the last track will be off cause this
         // wont run!!!
         if (mCurrentMode == ExecuteModeTask.ModeType.TRACKING) {
             if (processSavedImage())
-                displayImageFileName(mTrackingImageViewFileName);
+                displayImageFileName(TRACKING_WORKING_IMAGE_FILE_NAME, true);
         }
 
+    }
+    private void displayImageFileName(String filename, boolean relative) {
+        showLoading(false);
+        Bitmap bitmap;
+        if (relative) {
+            File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+            File file = new File(path, filename);
+            bitmap = BitmapFactory.decodeFile(file.getPath());
+        }
+        else {
+            bitmap = BitmapFactory.decodeFile(filename);
+        }
 
+        if (bitmap == null)
+            return;
+
+        mPictureView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, mPictureView.getWidth(), mPictureView.getHeight(), false));
     }
 
-    private void displayImageFileName(String filename) {
-        showLoading(false);
+    private void displayColorMatrixFileName() {
+        if (mColorLabel == null)
+            return;
+
         File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-        File file = new File(path, filename);
+        File file = new File(path, TRACKING_TEMP_IMAGE_FILE_NAME);
+
+        Boolean result = imwrite(file.getPath(), mColorLabel);
+        if (!result)
+            return;
+
+
         Bitmap bitmap = BitmapFactory.decodeFile(file.getPath());
-        mPictureView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, mPictureView.getWidth(), mPictureView.getHeight(), false));
+        if (bitmap == null)
+            return;
+
+        mColorView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, mColorView.getWidth(), mColorView.getHeight(), false));
+    }
+
+    private void displaySpectrumMatrixFileName() {
+        if (mColorStrip == null)
+            return;
+
+        File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        File file = new File(path, TRACKING_TEMP_IMAGE_FILE_NAME);
+
+        Boolean result = imwrite(file.getPath(), mColorStrip);
+        if (!result)
+            return;
+
+        Bitmap bitmap = BitmapFactory.decodeFile(file.getPath());
+        if (bitmap == null)
+            return;
+
+        mSpectrumView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, mSpectrumView.getWidth(), mSpectrumView.getHeight(), false));
     }
 
     //----------------------------------------------------------------------------------------------
@@ -729,13 +770,19 @@ public class MainActivity extends AppCompatActivity {
             toast.out(toastMessage);
             Log.i("TAB_POSITION", String.valueOf(tab.getPosition()));
 
+            // Handle the case of switching from the tracking mode
+            if (mCurrentMode == ExecuteModeTask.ModeType.TRACKING) {
+                mTrackingEnabled.set(false);
+                mExecuteModeTask.cancel(false);
+                mTrackingButton.setText(getString(R.string.tracking_enable));
+                if (mCanSendCommands.get())
+                    enableActions(true);
+            }
+
             mExecuteModeTask = new ExecuteModeTask(mHandler);
             ViewFlipper vf = (ViewFlipper) findViewById( R.id.viewFlipper );
             vf.setDisplayedChild(vf.indexOfChild(findViewById(R.id.section_buttons)));
-            if ((mCurrentMode == ExecuteModeTask.ModeType.TRACKING) && mCanSendCommands.get()) {
 
-                enableActions(true);
-            }
 
             switch (tab.getPosition()) {
                 case 0:
@@ -753,18 +800,20 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case 3:
                     if (!State.backup_switch_state) {
-                        // TODO STOP THE TAB FROM SWITCHING!!!!
                         toast.out("Please enable photo backup to enable this feature!");
                         break;
                     }
+
+                    if (mCanSendCommands.get())
+                        enableActions(true);
 
                     if (savedImageName == null) {
                         enableActions(false);
                         takePicture();
                     }
 
-                    enableButtons(false);
                     mCurrentMode = ExecuteModeTask.ModeType.TRACKING;
+                    mExecuteModeTask.execute(ExecuteModeTask.ModeType.TRACKING);
                     vf.setDisplayedChild(vf.indexOfChild(findViewById(R.id.section_tracking)));
                     return;
                 default:
@@ -812,16 +861,15 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     // TODO Make this more robust as discussed
-                    ref.enableActions(
-                            (ref.mCurrentMode == ExecuteModeTask.ModeType.MANUAL ||
-                             ref.mCurrentMode == ExecuteModeTask.ModeType.TRACKING) &&
+                    ref.enableActions(ref.mCurrentMode == ExecuteModeTask.ModeType.TRACKING ||
+                            ((ref.mCurrentMode == ExecuteModeTask.ModeType.MANUAL ||
 
                             (ref.mExecuteModeTask == null ||
                              ref.mExecuteModeTask.getStatus() == AsyncTask.Status.FINISHED) &&
 
                             !ref.mHoldingButton &&
-                            !ref.mAccelMovement
-                    );
+                            !ref.mAccelMovement)
+                    ));
 
                     mCanSendCommands.set(true);
                     break;
@@ -928,15 +976,15 @@ public class MainActivity extends AppCompatActivity {
 
         // This generates the color that we are tracking as a reference
         // TODO integrate this
-        //Mat colorLabel = mRgba.submat(4, 68, 4, 68);
-        //colorLabel.setTo(mBlobColorRgba);
+        mColorLabel.setTo(mBlobColorRgba);
 
         // TODO figure this out!
-        //Mat spectrumLabel = mRgba.submat(4, 4 + mSpectrum.rows(), 70, 70 + mSpectrum.cols());
-        //mSpectrum.copyTo(spectrumLabel);
+        Mat spectrumLabel = mRgba.submat(4, 4 + mSpectrum.rows(), 70, 70 + mSpectrum.cols());
+        mColorStrip = spectrumLabel.clone();
+        mSpectrum.copyTo(mColorStrip);
 
         File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-        File file = new File(path, mTrackingImageViewFileName);
+        File file = new File(path, TRACKING_WORKING_IMAGE_FILE_NAME);
         // Check if this over writes the image.
         Boolean bool = Imgcodecs.imwrite(file.toString(), mRgba);
 
