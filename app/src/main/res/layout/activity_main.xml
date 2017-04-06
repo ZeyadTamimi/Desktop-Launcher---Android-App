@@ -212,15 +212,54 @@
             android:layout_weight="0.45"
             android:elevation="10dp">
 
+            <TextView
+                android:id="@+id/tracking_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginEnd="70dp"
+                android:layout_marginTop="40dp"
+                android:text="Object to Track"
+                android:textColor="?attr/actionModeSplitBackground" />
+
+            <ImageView
+                android:id="@+id/tracking_image"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginEnd="70dp"
+                android:layout_marginTop="70dp"
+                android:background="@drawable/boarder"/>
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/refresh_image"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignStart="@+id/button_tracking"
+                android:layout_below="@+id/button_tracking"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="50dp"
+                android:layout_marginTop="22dp"
+                android:clickable="true"
+                app:backgroundTint="?attr/colorButtonNormal"
+                app:fabSize="mini"
+                app:srcCompat="@mipmap/ic_camera_alt_black_48dp" />
+
             <Button
                 android:id="@+id/button_tracking"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_centerVertical="true"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginStart="40dp"
+                android:layout_marginTop="69dp"
                 android:onClick="buttonPress"
                 android:text="@string/tracking_enable" />
+
         </RelativeLayout>
+
 
     </ViewFlipper>
 
