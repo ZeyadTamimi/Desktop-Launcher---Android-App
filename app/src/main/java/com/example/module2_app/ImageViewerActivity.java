@@ -1,6 +1,7 @@
 package com.example.module2_app;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
@@ -62,6 +63,9 @@ public class ImageViewerActivity extends AppCompatActivity {
                 GalleryActivity.gridAdapter.removeImage(picPosition);
                 finish();
                 break;
+
+            case android.R.id.home:
+                finish();
         }
         return true;
     }

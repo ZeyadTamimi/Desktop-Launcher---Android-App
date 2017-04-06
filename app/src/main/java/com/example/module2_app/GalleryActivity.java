@@ -136,7 +136,7 @@ public class GalleryActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
+        //Inflate the menu; this adds items to the action bar if it is present.
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.images_menu, menu);
 
@@ -161,6 +161,9 @@ public class GalleryActivity extends AppCompatActivity {
 
                 }
                 break;
+
+            case android.R.id.home:
+                finish();
         }
         return true;
     }
