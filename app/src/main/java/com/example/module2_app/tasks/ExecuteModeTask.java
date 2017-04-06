@@ -51,7 +51,8 @@ public class ExecuteModeTask extends AsyncTask<ExecuteModeTask.ModeType, Void, V
 
             // TODO: can modify movement here
             MainActivity.mCanSendCommands.set(false);
-            State.mmCommunicationThread.commandMoveTime(MessageConstants.MOVE_RIGHT, 200000);
+            State.mmCommunicationThread.commandMoveTimeSpeed(
+                    MessageConstants.MOVE_RIGHT, State.turret_speed_bar_value + 1, 100000);
 
             while (!MainActivity.mCanSendCommands.get());
             MainActivity.mCanSendCommands.set(false);
