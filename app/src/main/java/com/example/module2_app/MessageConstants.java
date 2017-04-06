@@ -49,6 +49,7 @@ public interface MessageConstants {
     public static final int RESPONSE_NIOS_HANDSHAKE = 0x04;
 
     // Message Sizes
+    public static final int SIZE_MESG_MAX = 65536;
     public static final int SIZE_COMMAND_MOVE_TIME = 5;
     public static final int SIZE_COMMAND_MOVE_TIME_SPEED = 6;
     public static final int SIZE_COMMAND_MOVE_ANGLE = 2;

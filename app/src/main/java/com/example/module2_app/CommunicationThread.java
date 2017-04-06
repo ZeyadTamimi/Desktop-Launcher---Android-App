@@ -12,12 +12,17 @@ import java.io.OutputStream;
 
 public class CommunicationThread extends Thread {
     //----------------------------------------------------------------------------------------------
+    // Constants
+    //----------------------------------------------------------------------------------------------
     private static final String TAG = "MY_APP_DEBUG_TAG";
+
+    //----------------------------------------------------------------------------------------------
+    // Fields
+    //----------------------------------------------------------------------------------------------
     private final BluetoothSocket mmSocket;
     private final InputStream mmInStream;
     private final OutputStream mmOutStream;
     private final Handler mHandler;
-
     private byte[] mmBuffer; // mmBuffer store for the stream
 
     //----------------------------------------------------------------------------------------------
@@ -47,7 +52,8 @@ public class CommunicationThread extends Thread {
     //----------------------------------------------------------------------------------------------
     @Override
     public void run() {
-        mmBuffer = new byte[65000];
+        // This the maximum size Message we can receive
+        mmBuffer = new byte[MessageConstants.SIZE_MESG_MAX];
         int numBytes;
         int messageSize;
 
@@ -55,19 +61,18 @@ public class CommunicationThread extends Thread {
         while (true) {
             try {
                 numBytes = 0;
-                messageSize = 0;
-
 
                 // Try to read the message header
                 while (numBytes < MessageConstants.SIZE_FIELD_HEADER)
                     numBytes += mmInStream.read(mmBuffer, numBytes, MessageConstants.SIZE_FIELD_HEADER - numBytes);
 
                 // Calculate the next number of bytes to read
-                messageSize = + (Util.uByte(mmBuffer[1]) << 8) + Util.uByte(mmBuffer[2]);
+                messageSize = (Util.uByte(mmBuffer[1]) << 8) + Util.uByte(mmBuffer[2]);
 
                 // Read the rest of the message
                 while (numBytes < messageSize + MessageConstants.SIZE_FIELD_HEADER)
                     numBytes += mmInStream.read(mmBuffer, numBytes, messageSize + MessageConstants.SIZE_FIELD_HEADER - numBytes);
+
                 // Send the obtained bytes to the UI activity.
                 Message readMsg = mHandler.obtainMessage(MessageConstants.MESSAGE_NIOS_RESPONSE, messageSize, -1, mmBuffer);
                 readMsg.sendToTarget();
@@ -86,14 +91,14 @@ public class CommunicationThread extends Thread {
             mmOutStream.write(bytes);
 
             // Share the sent message with the UI activity.
-            Message writtenMsg = mHandler.obtainMessage(MessageConstants.MESSAGE_WRITE, -1, -1, mmBuffer);
+            Message writtenMsg = mHandler.obtainMessage(MessageConstants.MESSAGE_WRITE,
+                                                        -1, -1, mmBuffer);
             writtenMsg.sendToTarget();
         } catch (IOException e) {
             Log.e(TAG, "Error occurred when sending data", e);
 
             // Send a failure message back to the activity.
-            Message writeErrorMsg =
-                    mHandler.obtainMessage(MessageConstants.MESSAGE_TOAST);
+            Message writeErrorMsg = mHandler.obtainMessage(MessageConstants.MESSAGE_TOAST);
             Bundle bundle = new Bundle();
             bundle.putString("toast",
                     "Couldn't send data to the other device");
@@ -129,11 +134,7 @@ public class CommunicationThread extends Thread {
         moveCommand[3] = (byte) (x_angle & 0xFF);
         moveCommand[4] = (byte) (y_angle & 0xFF);
 
-        String message = moveCommand.toString();
-        Log.i("message",message);
-
         write(moveCommand);
-
     }
 
     //----------------------------------------------------------------------------------------------
@@ -150,6 +151,7 @@ public class CommunicationThread extends Thread {
         moveCommand[6] = (byte) ((time >> 16) & 0xFF);
         moveCommand[7] = (byte) ((time >> 8) & 0xFF);
         moveCommand[8] = (byte) (time & 0xFF);
+
         write(moveCommand);
     }
 
@@ -160,26 +162,31 @@ public class CommunicationThread extends Thread {
         fireCommand[0] = (byte) MessageConstants.ID_COMMAND_FIRE;
         fireCommand[1] = (byte) (0);
         fireCommand[2] = (byte) (0);
+
         write(fireCommand);
     }
 
     //----------------------------------------------------------------------------------------------
     public void commandHandshake() {
         byte[] handshakeCommand = new byte[MessageConstants.SIZE_FIELD_HEADER];
+
         handshakeCommand[0] = (byte) MessageConstants.ID_COMMAND_ANDROID_HANDSHAKE;
         handshakeCommand[1] = (byte) (0);
         handshakeCommand[2] = (byte) (0);
+
         write(handshakeCommand);
     }
 
     //----------------------------------------------------------------------------------------------
     public void requestMessage(int messageId) {
         byte[] message = new byte[MessageConstants.SIZE_FIELD_HEADER +
-                MessageConstants.SIZE_REQUEST];
+                                  MessageConstants.SIZE_REQUEST];
+
         message[0] = (byte) MessageConstants.ID_REQUEST;
         message[1] = (byte) (MessageConstants.SIZE_REQUEST >> 8);
         message[2] = (byte) (MessageConstants.SIZE_REQUEST & 0xFF);
         message[MessageConstants.SIZE_FIELD_HEADER] = (byte) messageId;
+
         write(message);
     }
 
