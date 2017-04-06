@@ -104,18 +104,18 @@
                 android:id="@+id/switch_accelerometer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:checked="false"
-                android:theme="@style/redStyle"
-                android:layout_below="@+id/switch_text"
                 android:layout_alignStart="@+id/switch_text"
-                android:layout_marginStart="15dp" />
+                android:layout_below="@+id/switch_text"
+                android:layout_marginStart="15dp"
+                android:checked="false"
+                android:theme="@style/redStyle" />
 
             <TextView
                 android:id="@+id/switch_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentTop="true"
                 android:layout_alignParentEnd="true"
+                android:layout_alignParentTop="true"
                 android:layout_marginRight="30dp"
                 android:layout_marginTop="30dp"
                 android:text="Tilt Control"
@@ -231,7 +231,7 @@
                 android:layout_alignParentTop="true"
                 android:layout_marginEnd="70dp"
                 android:layout_marginTop="70dp"
-                android:background="@drawable/boarder"/>
+                android:background="@drawable/boarder" />
 
             <android.support.design.widget.FloatingActionButton
                 android:id="@+id/refresh_image"
