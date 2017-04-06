@@ -883,9 +883,6 @@ public class MainActivity extends AppCompatActivity {
 
                             (ref.mCurrentMode == ExecuteModeTask.ModeType.MANUAL &&
 
-                            (ref.mExecuteModeTask == null ||
-                             ref.mExecuteModeTask.getStatus() != AsyncTask.Status.RUNNING) &&
-
                             !ref.mHoldingButton &&
                             !ref.mAccelMovement)
                     );
