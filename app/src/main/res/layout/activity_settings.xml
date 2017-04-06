@@ -44,7 +44,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="0.05"
-            android:text="      Turret rotaion speed"
+            android:text="      Turret rotation speed"
             android:textAppearance="@style/TextAppearance.AppCompat" />
 
         <SeekBar

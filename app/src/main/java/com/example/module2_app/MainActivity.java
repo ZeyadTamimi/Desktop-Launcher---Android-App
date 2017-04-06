@@ -1,6 +1,7 @@
 package com.example.module2_app;
 import com.example.module2_app.tasks.*;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -14,6 +15,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -63,7 +66,8 @@ public class MainActivity extends AppCompatActivity {
     public static final int X_MAX_ANGLE = 45;
     public static final int Y_MAX_ANGLE = 30;
 
-    private static final int NUM_BUTTONS = 6;
+    private static final int NUM_BUTTONS = 7;
+    public static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 2;
 
     public static MainActivity ref;
     public static AppToast toast;
@@ -93,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar mPictureLoading;
     private TextView mTextNotConnected;
     private Button mTrackingButton;
-    // NOTE: 0-3: up down left right, 4-5: fire, camera
+    // NOTE: 0-3: up down left right, 4-6: fire, camera, refresh_image
     private FloatingActionButton[] mButtonArray;
     private int mLastTab = 0;
 
@@ -304,6 +308,7 @@ public class MainActivity extends AppCompatActivity {
         mButtonArray[3] =  (FloatingActionButton) findViewById(R.id.button_right);
         mButtonArray[4] =  (FloatingActionButton) findViewById(R.id.button_fire);
         mButtonArray[5] =  (FloatingActionButton) findViewById(R.id.button_camera);
+        mButtonArray[6] =  (FloatingActionButton) findViewById(R.id.refresh_image);
 
         toast = new AppToast(getApplicationContext());
         /////////////////////
@@ -359,6 +364,16 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
+
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
+
+        }
     }
 
     //----------------------------------------------------------------------------------------------
@@ -468,7 +483,7 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
         switch (requestCode) {
-            case GalleryActivity.MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE: {
+            case MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -498,12 +513,16 @@ public class MainActivity extends AppCompatActivity {
             case R.id.button_fire:
                 fire();
                 break;
+
+            case R.id.refresh_image:
             case R.id.button_camera:
                 takePicture();
                 break;
+
             case R.id.button_tracking:
                 toggleTracking();
                 break;
+
             default:
                 break;
         }

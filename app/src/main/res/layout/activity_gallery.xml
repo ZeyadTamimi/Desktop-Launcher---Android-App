@@ -6,8 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:splitMotionEvents="@bool/allow_multitouch"
-    android:weightSum="1"
-    tools:context="com.example.module2_app.GalleryActivity">
+    android:weightSum="1">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/activity_gallery_toolbar"

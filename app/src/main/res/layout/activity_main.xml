@@ -245,7 +245,8 @@
                 android:clickable="true"
                 app:backgroundTint="?attr/colorButtonNormal"
                 app:fabSize="mini"
-                app:srcCompat="@mipmap/ic_camera_alt_black_48dp" />
+                app:srcCompat="@mipmap/ic_camera_alt_black_48dp"
+                android:onClick="buttonPress"/>
 
             <Button
                 android:id="@+id/button_tracking"
