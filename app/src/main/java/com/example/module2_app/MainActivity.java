@@ -861,15 +861,16 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     // TODO Make this more robust as discussed
-                    ref.enableActions(ref.mCurrentMode == ExecuteModeTask.ModeType.TRACKING ||
-                            ((ref.mCurrentMode == ExecuteModeTask.ModeType.MANUAL ||
+                    ref.enableActions(
+                            (ref.mCurrentMode == ExecuteModeTask.ModeType.MANUAL ||
+                             ref.mCurrentMode == ExecuteModeTask.ModeType.TRACKING) &&
 
                             (ref.mExecuteModeTask == null ||
                              ref.mExecuteModeTask.getStatus() == AsyncTask.Status.FINISHED) &&
 
                             !ref.mHoldingButton &&
-                            !ref.mAccelMovement)
-                    ));
+                            !ref.mAccelMovement
+                    );
 
                     mCanSendCommands.set(true);
                     break;
