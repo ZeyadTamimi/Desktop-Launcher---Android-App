@@ -122,7 +122,6 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
 
     //----------------------------------------------------------------------------------------------
     public void refresh() {
-        // MainActivity.toast.out("REFRESH");
         State.mPairedStringArray.clear();
         State.mPairedDeviceArray.clear();
         for (BluetoothDevice d : mBluetoothAdapter.getBondedDevices()) {

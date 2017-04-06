@@ -66,17 +66,16 @@ public class MainActivity extends AppCompatActivity {
     //----------------------------------------------------------------------------------------------
     public static final int     X_MAX_ANGLE = 30;
     public static final int     Y_MAX_ANGLE = 30;
-    private static final int    NUM_BUTTONS = 7;
     public static final int     MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 2;
-    private String              TRACKING_WORKING_IMAGE_FILE_NAME = "dtr_tracking_working_file.png";
-    private String              TRACKING_TEMP_IMAGE_FILE_NAME = "dtr_tracking_temp_file.png";
+    private static final int    NUM_BUTTONS = 7;
+    private static final String TRACKING_WORKING_IMAGE_FILE_NAME = "dtr_tracking_working_file.png";
+    private static final String TRACKING_TEMP_IMAGE_FILE_NAME = "dtr_tracking_temp_file.png";
 
     //----------------------------------------------------------------------------------------------
     // FIELDS
     //----------------------------------------------------------------------------------------------
     public static MainActivity ref;
     public static AppToast toast;
-    private String toastMessage = "";
 
     private ExecuteModeTask.ModeType mCurrentMode;
     private SendCommandTask.CommandType mLastAccelCommand;
@@ -106,7 +105,6 @@ public class MainActivity extends AppCompatActivity {
     private Button mTrackingButton;
     // NOTE: 0-3: up down left right, 4-6: fire, camera, refresh_image
     private FloatingActionButton[] mButtonArray;
-    private int mLastTab = 0;
 
     // Tracking Setup
     public static AtomicBoolean mTrackingEnabled;
@@ -212,7 +210,6 @@ public class MainActivity extends AppCompatActivity {
                 Log.i("Direction", "rest");
                 if (mAccelMovement) {
                     Log.i("Fire", "CANCEL_TASK");
-                    toast.out("release");
                     mAccelMovement = false;
                     mLastAccelCommand = SendCommandTask.CommandType.REST;
                     if (mSendCommandTask != null) {
@@ -563,14 +560,12 @@ public class MainActivity extends AppCompatActivity {
 
     //----------------------------------------------------------------------------------------------
     private void fire() {
-        toast.out("FIRE");
         mCanSendCommands.set(false);
         State.mmCommunicationThread.commandFire();
     }
 
     //----------------------------------------------------------------------------------------------
     private void takePicture() {
-        toast.out("PICTURE");
         showLoading(true);
         mCanSendCommands.set(false);
         State.mmCommunicationThread.requestMessage(MessageConstants.ID_MESG_IMAGE);
@@ -597,14 +592,9 @@ public class MainActivity extends AppCompatActivity {
     //----------------------------------------------------------------------------------------------
     private void rotateTouch(int x_angle, int y_angle){
         if (mAllowActions) {
-            toastMessage = "x angle= "+ x_angle + " " + "y angle = " + y_angle;
-            // toast.out(toastMessage);
             if (x_angle <= 127 && x_angle >= -128 && y_angle <= 127 && y_angle >= -128) {
                 enableActions(false);
                 State.mmCommunicationThread.commandMoveAngle(x_angle, y_angle);
-                // TODO: if we want to take a picture, need to synchronize
-                //       but we can't do this on the GUI thread
-                // takePicture();
             }
         }
     }
@@ -750,7 +740,6 @@ public class MainActivity extends AppCompatActivity {
                     if (mAllowActions) {
                         enableActions(false);
                         mHoldingButton = true;
-                        toast.out(mCmd.name());
                         mSendCommandTask = new SendCommandTask();
                         mSendCommandTask.execute(mCmd);
                     }
@@ -758,7 +747,6 @@ public class MainActivity extends AppCompatActivity {
                 case MotionEvent.ACTION_CANCEL:
                 case MotionEvent.ACTION_UP:
                     if (mHoldingButton) {
-                        toast.out("release");
                         mHoldingButton = false;
                         mSendCommandTask.cancel(false);
                     }
@@ -776,8 +764,6 @@ public class MainActivity extends AppCompatActivity {
                 mExecuteModeTask.cancel(false);
             }
 
-            toastMessage = tab.getText().toString();
-            toast.out(toastMessage);
             Log.i("TAB_POSITION", String.valueOf(tab.getPosition()));
 
             // Handle the case of switching from the tracking mode
@@ -837,8 +823,6 @@ public class MainActivity extends AppCompatActivity {
                 default:
                     break;
             }
-
-            mLastTab = tab.getPosition();
             mExecuteModeTask.execute(mCurrentMode);
         }
         @Override
@@ -860,15 +844,14 @@ public class MainActivity extends AppCompatActivity {
                     byte[] receiveMessage = (byte[]) msg.obj;
                     if (Util.uByte(receiveMessage[0]) == MessageConstants.ID_RESPONSE) {
                         if (Util.uByte(receiveMessage[4]) == MessageConstants.RESPONSE_NO_ERROR) {
-                            ref.toast.out("Command Successful!");
+                            Log.i("NIOS_RESPONSE", "Command Successful!");
                         }
                         else if (Util.uByte(receiveMessage[4]) == MessageConstants.RESPONSE_NIOS_HANDSHAKE) {
-                            ref.toast.out("Handshake!");
+                            Log.i("NIOS_RESPONSE", "Handshake!");
                             State.heartBeatTimmer.cancel();
                         }
                         else {
-                            ref.toast.out("Command: " + receiveMessage[2] +
-                                    " failed with code: " + receiveMessage[3]);
+                            Log.i("NIOS_RESPONSE", "Command: " + receiveMessage[2] + " failed with code: " + receiveMessage[3]);
                         }
                     }
                     else if (Util.uByte(receiveMessage[0]) == MessageConstants.ID_MESG_IMAGE) {
