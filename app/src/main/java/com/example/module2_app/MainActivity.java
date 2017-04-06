@@ -760,6 +760,10 @@ public class MainActivity extends AppCompatActivity {
     private class ModeSelectedListener implements TabLayout.OnTabSelectedListener {
         @Override
         public void onTabSelected(TabLayout.Tab tab) {
+            if (!State.btConnected()) {
+                return;
+            }
+
             if (mExecuteModeTask != null) {
                 mExecuteModeTask.cancel(false);
             }
