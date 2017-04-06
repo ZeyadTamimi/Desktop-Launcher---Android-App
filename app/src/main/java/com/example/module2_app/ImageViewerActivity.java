@@ -1,7 +1,6 @@
 package com.example.module2_app;
 
 import android.content.Context;
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
@@ -33,7 +32,7 @@ public class ImageViewerActivity extends AppCompatActivity {
         ActionBar ab = getSupportActionBar();
         ab.setDisplayHomeAsUpEnabled(true);
 
-        size = GalleryActivity.list.size()-1;
+        size = GalleryActivity.mFileList.size()-1;
         String f = getIntent().getStringExtra("img");
         picPosition = getIntent().getIntExtra("pos",-1);
 
@@ -62,7 +61,7 @@ public class ImageViewerActivity extends AppCompatActivity {
         // Handle item selection
         switch (item.getItemId()) {
             case R.id.action_delete:
-                GalleryActivity.gridAdapter.removeImage(picPosition);
+                GalleryActivity.mGridAdapter.removeImage(picPosition);
                 finish();
                 break;
 
@@ -131,14 +130,14 @@ public class ImageViewerActivity extends AppCompatActivity {
         public void onSwipeRight() {
             if (--picPosition < 0) picPosition = size;
             Log.i("test","position = "+picPosition);
-            iv.setImageURI(Uri.parse(GalleryActivity.list.get(picPosition).toString()));
+            iv.setImageURI(Uri.parse(GalleryActivity.mFileList.get(picPosition).toString()));
 
         }
 
         public void onSwipeLeft() {
             if (++picPosition > size) picPosition = 0;
             Log.i("test","position = "+picPosition);
-            iv.setImageURI(Uri.parse(GalleryActivity.list.get(picPosition).toString()));
+            iv.setImageURI(Uri.parse(GalleryActivity.mFileList.get(picPosition).toString()));
 
         }
 
