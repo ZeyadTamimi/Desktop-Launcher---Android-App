@@ -1,3 +1,5 @@
+// Source :
+// https://github.com/opencv/opencv/blob/master/samples/android/color-blob-detection/src/org/opencv/samples/colorblobdetect/ColorBlobDetectionActivity.java
 package com.example.module2_app;
 
 import java.util.ArrayList;
