@@ -19,7 +19,7 @@ import java.util.Calendar;
 import java.util.List;
 
 public class Util {
-
+    //----------------------------------------------------------------------------------------------
     /**
      *
      * @param b input byte
@@ -29,6 +29,7 @@ public class Util {
         return ((int) b & 0xFF);
     }
 
+    //----------------------------------------------------------------------------------------------
     /* Checks if external storage is available for read and write */
     public boolean isExternalStorageWritable() {
         String state = Environment.getExternalStorageState();
@@ -38,6 +39,7 @@ public class Util {
         return false;
     }
 
+    //----------------------------------------------------------------------------------------------
     public static String saveImage(byte[] imageByteArray, int offset, int size) {
 
         // Get the image directory
@@ -63,6 +65,7 @@ public class Util {
         return null;
     }
 
+    //----------------------------------------------------------------------------------------------
     public static MatOfPoint largerCountour(List<MatOfPoint> contours) {
         MatOfPoint chosenCountour = null;
         for (MatOfPoint contour : contours) {
@@ -74,12 +77,14 @@ public class Util {
         return chosenCountour;
     }
 
+    //----------------------------------------------------------------------------------------------
     public static Point contourCenter(MatOfPoint contour) {
         Moments m = Imgproc.moments(contour, true);
         Point center = new Point(m.m10/m.m00, m.m01/m.m00);
         return center;
     }
 
+    //----------------------------------------------------------------------------------------------
     public static Scalar converScalarHsv2Rgba(Scalar hsvColor) {
         Mat pointMatRgba = new Mat();
         Mat pointMatHsv = new Mat(1, 1, CvType.CV_8UC3, hsvColor);

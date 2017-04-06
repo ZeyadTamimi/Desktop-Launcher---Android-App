@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class BluetoothConnectActivity extends  AppCompatActivity {
+    //----------------------------------------------------------------------------------------------
     private static final String TAG = "MY_APP_DEBUG_TAG";
     private static final int REQUEST_ENABLE_BT = 1;
 
@@ -28,6 +29,7 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
     private TextView mTextConnected;
     private static ConnectThread btConnectThread;
 
+    //----------------------------------------------------------------------------------------------
     public Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -42,6 +44,7 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
         }
     };
 
+    //----------------------------------------------------------------------------------------------
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -102,6 +105,7 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
         });
     }
 
+    //----------------------------------------------------------------------------------------------
     @Override
     public void onResume() {
         super.onResume();
@@ -113,6 +117,7 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
         }
     }
 
+    //----------------------------------------------------------------------------------------------
     public void buttonPress(View view) {
         switch(view.getId()) {
             case R.id.button_refresh:
@@ -120,6 +125,7 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
         }
     }
 
+    //----------------------------------------------------------------------------------------------
     public void refresh() {
         // MainActivity.toast.out("REFRESH");
         State.mPairedStringArray.clear();
@@ -133,6 +139,7 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
         State.mPairedAdapter.notifyDataSetChanged();
     }
 
+    //----------------------------------------------------------------------------------------------
     public void setConnected(int pos) {
         if (State.btConnected()) {
             mTextConnected.setText("CONNECTED TO " + State.mPairedDeviceArray.get(pos).getName());
@@ -149,6 +156,7 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
         State.mPairedAdapter.notifyDataSetChanged();
     }
 
+    //----------------------------------------------------------------------------------------------
     private class ConnectThread extends Thread {
         private final BluetoothSocket mmSocket;
         private final BluetoothDevice mmDevice;

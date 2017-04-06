@@ -12,6 +12,7 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 public class ColorBlobDetector {
+    //----------------------------------------------------------------------------------------------
     // Lower and Upper bounds for range checking in HSV color space
     private Scalar mLowerBound = new Scalar(0);
     private Scalar mUpperBound = new Scalar(0);
@@ -29,10 +30,12 @@ public class ColorBlobDetector {
     Mat mDilatedMask = new Mat();
     Mat mHierarchy = new Mat();
 
+    //----------------------------------------------------------------------------------------------
     public void setColorRadius(Scalar radius) {
         mColorRadius = radius;
     }
 
+    //----------------------------------------------------------------------------------------------
     public void setHsvColor(Scalar hsvColor) {
         double minH = (hsvColor.val[0] >= mColorRadius.val[0]) ? hsvColor.val[0]-mColorRadius.val[0] : 0;
         double maxH = (hsvColor.val[0]+mColorRadius.val[0] <= 255) ? hsvColor.val[0]+mColorRadius.val[0] : 255;
@@ -59,14 +62,17 @@ public class ColorBlobDetector {
         Imgproc.cvtColor(spectrumHsv, mSpectrum, Imgproc.COLOR_HSV2RGB_FULL, 4);
     }
 
+    //----------------------------------------------------------------------------------------------
     public Mat getSpectrum() {
         return mSpectrum;
     }
 
+    //----------------------------------------------------------------------------------------------
     public void setMinContourArea(double area) {
         mMinContourArea = area;
     }
 
+    //----------------------------------------------------------------------------------------------
     public void process(Mat rgbaImage) {
         Imgproc.pyrDown(rgbaImage, mPyrDownMat);
         Imgproc.pyrDown(mPyrDownMat, mPyrDownMat);
@@ -102,6 +108,7 @@ public class ColorBlobDetector {
         }
     }
 
+    //----------------------------------------------------------------------------------------------
     public List<MatOfPoint> getContours() {
         return mContours;
     }

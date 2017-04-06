@@ -36,5 +36,4 @@ public class State {
         return btSocket != null && btSocket.isConnected();
     }
 
-
 }

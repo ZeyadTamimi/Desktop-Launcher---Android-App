@@ -12,8 +12,8 @@ import java.util.ArrayList;
 
 
 public class BluetoothArrayAdaptor extends ArrayAdapter<String> {
-
-    enum ConnectionState {
+    //----------------------------------------------------------------------------------------------
+    public enum ConnectionState {
         CONNECTED,
         CONNECTING,
         DISCONNECTED;
@@ -24,7 +24,8 @@ public class BluetoothArrayAdaptor extends ArrayAdapter<String> {
     private ArrayList<String> theStringArray;
     public final int numRows = 500 ;
     private ConnectionState[] RowConnection = new ConnectionState[numRows];
-    // constructor
+
+    //----------------------------------------------------------------------------------------------
     public BluetoothArrayAdaptor(Context _context,
                                  int textViewResourceId,
                                  ArrayList<String> _theStringArray)
@@ -37,6 +38,7 @@ public class BluetoothArrayAdaptor extends ArrayAdapter<String> {
         clearConnection ();
     }
 
+    //----------------------------------------------------------------------------------------------
     @Override
     public View getView (int position, View convertView, ViewGroup parent)
     {
@@ -72,6 +74,7 @@ public class BluetoothArrayAdaptor extends ArrayAdapter<String> {
         return row;
     }
 
+    //----------------------------------------------------------------------------------------------
     public void setState(int position, ConnectionState state) {RowConnection [position] = state; }
     public ConnectionState getConnection(int position) {return RowConnection[position];}
     public void clearConnection () {

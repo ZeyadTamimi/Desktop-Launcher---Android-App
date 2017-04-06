@@ -12,12 +12,8 @@ import android.util.Log;
 import android.widget.SeekBar;
 import android.widget.Switch;
 
-/**
- * Created by deh on 3/13/2017.
- */
-
 public class SettingsActivity extends AppCompatActivity {
-
+    //----------------------------------------------------------------------------------------------
     public static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 1;
     public Switch backup_switch;
     public SeekBar turret_speed_bar;
@@ -26,6 +22,7 @@ public class SettingsActivity extends AppCompatActivity {
     public int turret_speed_bar_value;
     public int image_resolution_bar_value;
 
+    //----------------------------------------------------------------------------------------------
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.i("message","creating settings activity");
@@ -52,6 +49,8 @@ public class SettingsActivity extends AppCompatActivity {
 
 
     }
+
+    //----------------------------------------------------------------------------------------------
     @Override
     public void onPause() {
         super.onPause();
@@ -65,6 +64,7 @@ public class SettingsActivity extends AppCompatActivity {
         State.image_resolution_bar_value = image_resolution_bar_value;
     }
 
+    //----------------------------------------------------------------------------------------------
     @Override
     public void onResume(){
         super.onResume();
@@ -78,6 +78,5 @@ public class SettingsActivity extends AppCompatActivity {
         image_resolution_bar.setProgress(image_resolution_bar_value);
 
     }
-
 
 }

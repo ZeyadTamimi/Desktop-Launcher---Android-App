@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class CommunicationThread extends Thread {
+    //----------------------------------------------------------------------------------------------
     private static final String TAG = "MY_APP_DEBUG_TAG";
     private final BluetoothSocket mmSocket;
     private final InputStream mmInStream;
@@ -19,6 +20,7 @@ public class CommunicationThread extends Thread {
 
     private byte[] mmBuffer; // mmBuffer store for the stream
 
+    //----------------------------------------------------------------------------------------------
     public CommunicationThread(BluetoothSocket socket, Handler handler) {
         mmSocket = socket;
         mHandler = handler;
@@ -42,6 +44,8 @@ public class CommunicationThread extends Thread {
         mmOutStream = tmpOut;
     }
 
+    //----------------------------------------------------------------------------------------------
+    @Override
     public void run() {
         mmBuffer = new byte[65000];
         int numBytes;
@@ -74,6 +78,7 @@ public class CommunicationThread extends Thread {
         }
     }
 
+    //----------------------------------------------------------------------------------------------
     // Call this from the main activity to send data to the remote device.
     public void write(byte[] bytes) {
         try {
@@ -97,6 +102,7 @@ public class CommunicationThread extends Thread {
         }
     }
 
+    //----------------------------------------------------------------------------------------------
     public void commandMoveTime(int direction, long time) {
         byte[] moveCommand = new byte[MessageConstants.SIZE_FIELD_HEADER +
                 MessageConstants.SIZE_COMMAND_MOVE_TIME];
@@ -112,6 +118,7 @@ public class CommunicationThread extends Thread {
         write(moveCommand);
     }
 
+    //----------------------------------------------------------------------------------------------
     public void commandMoveAngle(int x_angle, int y_angle){
         byte[] moveCommand = new byte[MessageConstants.SIZE_FIELD_HEADER +
                 MessageConstants.SIZE_COMMAND_MOVE_ANGLE];
@@ -129,6 +136,7 @@ public class CommunicationThread extends Thread {
 
     }
 
+    //----------------------------------------------------------------------------------------------
 	public void commandMoveTimeSpeed(int direction, int speed, long time) {
         byte[] moveCommand = new byte[MessageConstants.SIZE_FIELD_HEADER +
                 MessageConstants.SIZE_COMMAND_MOVE_TIME_SPEED];
@@ -145,6 +153,7 @@ public class CommunicationThread extends Thread {
         write(moveCommand);
     }
 
+    //----------------------------------------------------------------------------------------------
     public void commandFire() {
         byte[] fireCommand = new byte[MessageConstants.SIZE_FIELD_HEADER];
 
@@ -154,6 +163,7 @@ public class CommunicationThread extends Thread {
         write(fireCommand);
     }
 
+    //----------------------------------------------------------------------------------------------
     public void commandHandshake() {
         byte[] handshakeCommand = new byte[MessageConstants.SIZE_FIELD_HEADER];
         handshakeCommand[0] = (byte) MessageConstants.ID_COMMAND_ANDROID_HANDSHAKE;
@@ -162,6 +172,7 @@ public class CommunicationThread extends Thread {
         write(handshakeCommand);
     }
 
+    //----------------------------------------------------------------------------------------------
     public void requestMessage(int messageId) {
         byte[] message = new byte[MessageConstants.SIZE_FIELD_HEADER +
                 MessageConstants.SIZE_REQUEST];
@@ -172,6 +183,7 @@ public class CommunicationThread extends Thread {
         write(message);
     }
 
+    //----------------------------------------------------------------------------------------------
     // Call this method from the main activity to shut down the connection.
     public void cancel() {
         try {

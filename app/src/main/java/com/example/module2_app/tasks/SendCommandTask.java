@@ -7,11 +7,12 @@ import com.example.module2_app.MessageConstants;
 import com.example.module2_app.State;
 
 public class SendCommandTask extends AsyncTask<SendCommandTask.CommandType, Void, Void> {
-
+    //----------------------------------------------------------------------------------------------
     public enum CommandType {
         UP, DOWN, LEFT, RIGHT, REST;
     }
 
+    //----------------------------------------------------------------------------------------------
     @Override
     protected Void doInBackground(CommandType... params) {
         while(!isCancelled()) {
@@ -50,11 +51,13 @@ public class SendCommandTask extends AsyncTask<SendCommandTask.CommandType, Void
         return null;
     }
 
+    //----------------------------------------------------------------------------------------------
     @Override
     protected void onCancelled() {
 
     }
 
+    //----------------------------------------------------------------------------------------------
     @Override
     protected void onPostExecute(Void result) {
 

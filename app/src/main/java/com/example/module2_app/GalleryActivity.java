@@ -33,6 +33,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 public class GalleryActivity extends AppCompatActivity {
+    //----------------------------------------------------------------------------------------------
     public static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 2;
     public static GridView gridview;
     public static ArrayList<File> list;
@@ -40,6 +41,8 @@ public class GalleryActivity extends AppCompatActivity {
     public static GridAdapter gridAdapter;
     public static int picsSelected;
     public static SparseBooleanArray checkArray;
+
+    //----------------------------------------------------------------------------------------------
     @Override
     public void onCreate(Bundle savedInstanceState) {
 
@@ -133,7 +136,7 @@ public class GalleryActivity extends AppCompatActivity {
 
     }
 
-
+    //----------------------------------------------------------------------------------------------
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         //Inflate the menu; this adds items to the action bar if it is present.
@@ -143,6 +146,7 @@ public class GalleryActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
+    //----------------------------------------------------------------------------------------------
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection
@@ -168,6 +172,7 @@ public class GalleryActivity extends AppCompatActivity {
         return true;
     }
 
+    //----------------------------------------------------------------------------------------------
     public class GridAdapter extends BaseAdapter {
         Context mContext;
         public GridAdapter(Context context)
@@ -243,7 +248,5 @@ public class GalleryActivity extends AppCompatActivity {
 
 
         }
-
-
     }
 }

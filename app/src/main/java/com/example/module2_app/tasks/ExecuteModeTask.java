@@ -9,16 +9,19 @@ import com.example.module2_app.State;
 
 // TODO: refactor while(isCancelled()) to doInBackground
 public class ExecuteModeTask extends AsyncTask<ExecuteModeTask.ModeType, Void, Void> {
+    //----------------------------------------------------------------------------------------------
     public enum ModeType {
         MANUAL, AUTO, SECURITY, TRACKING;
     }
 
     private Handler mHandler;
 
+    //----------------------------------------------------------------------------------------------
     public ExecuteModeTask(Handler handler) {
         mHandler = handler;
     }
 
+    //----------------------------------------------------------------------------------------------
     @Override
     protected Void doInBackground(ModeType... params) {
         switch (params[0]){
@@ -30,20 +33,24 @@ public class ExecuteModeTask extends AsyncTask<ExecuteModeTask.ModeType, Void, V
         return null;
     }
 
+    //----------------------------------------------------------------------------------------------
     @Override
     protected void onCancelled() {
 
     }
 
+    //----------------------------------------------------------------------------------------------
     @Override
     protected void onPostExecute(Void result) {
 
     }
 
+    //----------------------------------------------------------------------------------------------
     private void enterManualMode() {
 
     }
 
+    //----------------------------------------------------------------------------------------------
     private void enterAutoMode() {
         while(!isCancelled()) {
             if (!MainActivity.mCanSendCommands.get())
@@ -67,6 +74,7 @@ public class ExecuteModeTask extends AsyncTask<ExecuteModeTask.ModeType, Void, V
         }
     }
 
+    //----------------------------------------------------------------------------------------------
     private void enterSecurityMode() {
         while(!isCancelled()) {
             if (!MainActivity.mCanSendCommands.get())
@@ -90,6 +98,7 @@ public class ExecuteModeTask extends AsyncTask<ExecuteModeTask.ModeType, Void, V
         }
     }
 
+    //----------------------------------------------------------------------------------------------
     private void enterTrackingMode() {
         while(!isCancelled()) {
             if (!MainActivity.mTrackingEnabled.get())

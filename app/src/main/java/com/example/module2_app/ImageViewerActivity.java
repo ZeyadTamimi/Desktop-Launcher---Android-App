@@ -18,12 +18,13 @@ import android.widget.ImageView;
 
 
 public class ImageViewerActivity extends AppCompatActivity {
-
+    //----------------------------------------------------------------------------------------------
     long picItem, picPrevItem, picNextItem;
     int picPosition;
     int size;
     ImageView iv;
 
+    //----------------------------------------------------------------------------------------------
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image_view);
@@ -43,9 +44,9 @@ public class ImageViewerActivity extends AppCompatActivity {
         });
         Log.i("test","position = " + picPosition);
         Log.i("test","size = " + size);
-
-
     }
+
+    //----------------------------------------------------------------------------------------------
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -55,6 +56,7 @@ public class ImageViewerActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
+    //----------------------------------------------------------------------------------------------
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection
@@ -70,6 +72,7 @@ public class ImageViewerActivity extends AppCompatActivity {
         return true;
     }
 
+    //----------------------------------------------------------------------------------------------
     public class OnSwipeTouchListener implements View.OnTouchListener {
 
         private final GestureDetector gestureDetector;

@@ -6,14 +6,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 
 public class DirectionDetector implements SensorEventListener {
-    private OnDirectionChangeListener mListener;
-
-    private float[] mGravity;
-    private float[] mGeomagnetic;
-    private float R[] = new float[9];
-    private float I[] = new float[9];
-    private float orientation[] = new float[3];
-
+    //----------------------------------------------------------------------------------------------
     public interface OnDirectionChangeListener {
         void onRest();
         void onUp();
@@ -22,20 +15,30 @@ public class DirectionDetector implements SensorEventListener {
         void onRight();
     }
 
+    private OnDirectionChangeListener mListener;
+
+    private float[] mGravity;
+    private float[] mGeomagnetic;
+    private float R[] = new float[9];
+    private float I[] = new float[9];
+    private float orientation[] = new float[3];
+
+
+    //----------------------------------------------------------------------------------------------
     public DirectionDetector(OnDirectionChangeListener listener) {
         this.mListener = listener;
     }
-
     public void setOnTiltListener(OnDirectionChangeListener listener) {
         this.mListener = listener;
     }
 
-
+    //----------------------------------------------------------------------------------------------
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
     }
 
+    //----------------------------------------------------------------------------------------------
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
