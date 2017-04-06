@@ -82,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
     private SendCommandTask.CommandType mLastAccelCommand;
     private AsyncTask<ExecuteModeTask.ModeType, Void, Void> mExecuteModeTask;
     private AsyncTask<SendCommandTask.CommandType, Void, Void> mSendCommandTask;
-    public static AtomicBoolean mCanSendCommands;
+    public static AtomicBoolean mCanSendCommands = new AtomicBoolean(true);
     private boolean mHoldingButton, mAccelMovement, mDetectedMotion;
     // NOTE: this is modified through enableActions()
     //       read this value to see if we can click buttons / switch modes
@@ -185,7 +185,6 @@ public class MainActivity extends AppCompatActivity {
         ///////////
         // Flags //
         ///////////
-        mCanSendCommands = new AtomicBoolean(false);
         mHoldingButton = false;
         mAccelMovement = false;
 
@@ -436,10 +435,10 @@ public class MainActivity extends AppCompatActivity {
             mTabStrip.getChildAt(3).setClickable(true);
         }
 
-
         ref = this;
         enableActions(false);
         enableAccelerometer(mAccelOnSwitch.isChecked());
+
 
         // TODO: review this part!
         // communication thread
@@ -461,8 +460,10 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     handler.post(new Runnable() {
                         public void run() {
-                            Log.i("info", "timer handshake");
-                            State.mmCommunicationThread.commandHandshake();
+                            if(mCanSendCommands.get()) {
+                                Log.i("info", "timer handshake");
+                                State.mmCommunicationThread.commandHandshake();
+                            }
                         }
                     });
                 }
@@ -490,7 +491,6 @@ public class MainActivity extends AppCompatActivity {
         if (mSendCommandTask != null)
             mSendCommandTask.cancel(false);
 
-        mCanSendCommands.set(false);
         mHoldingButton = false;
         mAccelMovement = false;
     }
@@ -879,7 +879,7 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     // TODO Make this more robust as discussed
-                    ref.enableActions(ref.mCurrentMode == ExecuteModeTask.ModeType.TRACKING ||
+                    ref.enableActions((ref.mCurrentMode == ExecuteModeTask.ModeType.TRACKING && !mTrackingEnabled.get()) ||
 
                             (ref.mCurrentMode == ExecuteModeTask.ModeType.MANUAL &&
 

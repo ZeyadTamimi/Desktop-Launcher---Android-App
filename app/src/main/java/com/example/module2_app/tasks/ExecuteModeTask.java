@@ -82,8 +82,12 @@ public class ExecuteModeTask extends AsyncTask<ExecuteModeTask.ModeType, Void, V
 
             MainActivity.mCanSendCommands.set(false);
             State.mmCommunicationThread.requestMessage(MessageConstants.ID_MESG_MOTION);
+
+
             while (!MainActivity.mCanSendCommands.get());
+
             if (MainActivity.ref.getDetectedMotion()) {
+
                 MainActivity.mCanSendCommands.set(false);
                 State.mmCommunicationThread.commandFire();
 
