@@ -54,12 +54,11 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
         ActionBar ab = getSupportActionBar();
         ab.setDisplayHomeAsUpEnabled(true);
 
-        if (State.mPairedStringArray == null) {
+        if (State.mPairedStringArray == null)
             State.mPairedStringArray = new ArrayList<>();
-        }
-        if (State.mPairedDeviceArray == null) {
+
+        if (State.mPairedDeviceArray == null)
             State.mPairedDeviceArray = new ArrayList<>();
-        }
 
         if (State.mPairedAdapter == null) {
             State.mPairedAdapter = new BluetoothArrayAdaptor(this,
@@ -75,7 +74,8 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
         // Bluetooth
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mBluetoothAdapter == null) {
-            // TODO: device does not support Bluetooth
+            Log.e("BL Error","Bluetooth not supported on this device!");
+            return;
         }
 
         if (!mBluetoothAdapter.isEnabled()) {
@@ -89,11 +89,10 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
                 if (State.mPairedAdapter.getConnection(pos) == BluetoothArrayAdaptor.ConnectionState.CONNECTED) {
                     btConnectThread.cancel();
 
-                    if (State.mmCommunicationThread != null) {
+                    if (State.mmCommunicationThread != null)
                         State.mmCommunicationThread.cancel();
-                    }
-                    State.mmCommunicationThread = null;
 
+                    State.mmCommunicationThread = null;
                     setConnected(pos);
                 }
                 else if (btConnectThread == null || !btConnectThread.isAlive()) {
@@ -109,20 +108,16 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        if (State.btConnected()) {
+        if (State.btConnected())
             setConnected(State.lastConnectedPos);
-        }
-        else {
+        else
             refresh();
-        }
     }
 
     //----------------------------------------------------------------------------------------------
     public void buttonPress(View view) {
-        switch(view.getId()) {
-            case R.id.button_refresh:
+        if (view.getId() == R.id.button_refresh)
                 refresh();
-        }
     }
 
     //----------------------------------------------------------------------------------------------
@@ -174,7 +169,7 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
             try {
                 // Get a BluetoothSocket to connect with the given BluetoothDevice.
                 // MY_UUID is the app's UUID string, also used in the server code.
-                tmp = device.createRfcommSocketToServiceRecord(device.getUuids()[0].getUuid());
+                tmp = mmDevice.createRfcommSocketToServiceRecord(device.getUuids()[0].getUuid());
             } catch (IOException e) {
                 Log.e(TAG, "Socket's create() method failed", e);
             }
@@ -191,7 +186,7 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
                 // until it succeeds or throws an exception.
                 mmSocket.connect();
             } catch (IOException connectException) {
-                mHandler.obtainMessage(MessageConstants.MESSAGE_CONNECT_FAIL, mPos).sendToTarget();
+                mmHanlder.obtainMessage(MessageConstants.MESSAGE_CONNECT_FAIL, mPos).sendToTarget();
                 // Unable to connect; close the socket and return.
                 try {
                     mmSocket.close();
@@ -205,7 +200,7 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
             // the connection in a separate thread.
             com.example.module2_app.State.setBtSocket(mmSocket);
             com.example.module2_app.State.lastConnectedPos = mPos;
-            mHandler.obtainMessage(MessageConstants.MESSAGE_CONNECT_SUCCESS, mPos).sendToTarget();
+            mmHanlder.obtainMessage(MessageConstants.MESSAGE_CONNECT_SUCCESS, mPos).sendToTarget();
         }
 
         // Closes the client socket and causes the thread to finish.
