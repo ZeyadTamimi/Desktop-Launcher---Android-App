@@ -85,6 +85,12 @@ public class BluetoothConnectActivity extends  AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View v, int pos, long id) {
                 if (State.mPairedAdapter.getConnection(pos) == BluetoothArrayAdaptor.ConnectionState.CONNECTED) {
                     btConnectThread.cancel();
+
+                    if (State.mmCommunicationThread != null) {
+                        State.mmCommunicationThread.cancel();
+                    }
+                    State.mmCommunicationThread = null;
+
                     setConnected(pos);
                 }
                 else if (btConnectThread == null || !btConnectThread.isAlive()) {

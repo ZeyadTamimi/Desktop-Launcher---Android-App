@@ -398,6 +398,23 @@ public class MainActivity extends AppCompatActivity {
             Log.d("WOW", "OpenCV library found inside package. Using it!");
             mOpenCVCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
+        // 3 is tracking
+        if (!State.backup_switch_state) {
+            mTabStrip.getChildAt(3).setClickable(false);
+            mTabStrip.getChildAt(3).setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    if (!State.backup_switch_state) {
+                        toast.out("Please enable photo backup to enable this feature!");
+                        return false;
+                    }
+                    return true;
+                }
+            });
+        }
+        else {
+            mTabStrip.getChildAt(3).setClickable(true);
+        }
 
         ref = this;
         enableActions(false);
@@ -745,6 +762,7 @@ public class MainActivity extends AppCompatActivity {
                         enableActions(false);
                         takePicture();
                     }
+
                     enableButtons(false);
                     mCurrentMode = ExecuteModeTask.ModeType.TRACKING;
                     vf.setDisplayedChild(vf.indexOfChild(findViewById(R.id.section_tracking)));
@@ -797,6 +815,10 @@ public class MainActivity extends AppCompatActivity {
                     ref.enableActions(
                             (ref.mCurrentMode == ExecuteModeTask.ModeType.MANUAL ||
                              ref.mCurrentMode == ExecuteModeTask.ModeType.TRACKING) &&
+
+                            (ref.mExecuteModeTask == null ||
+                             ref.mExecuteModeTask.getStatus() == AsyncTask.Status.FINISHED) &&
+
                             !ref.mHoldingButton &&
                             !ref.mAccelMovement
                     );
